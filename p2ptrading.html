@@ -16,15 +16,24 @@
         .content-area { height: 100vh; overflow-y: auto; width: 100%; }
         .btn-prime { background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%); }
         
+        /* High-Fidelity Responsive Grid */
+        .market-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
+            gap: 1.5rem; 
+            width: 100%;
+        }
+
         #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 1000; pointer-events: none; }
         .toast { pointer-events: auto; transform: translateX(150%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
 
-        /* Modal logic */
-        .modal-overlay { transition: opacity 0.3s ease; }
+        /* Modal Transitions */
+        .modal-overlay { transition: opacity 0.3s ease; background: rgba(0,0,0,0.85); backdrop-blur: 8px; }
         .modal-content { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hidden-modal { opacity: 0; visibility: hidden; pointer-events: none; }
         .hidden-modal .modal-content { transform: scale(0.9) translateY(20px); }
+        .step-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
 
         @media (max-width: 1024px) {
             .sidebar { position: fixed; left: 0; transform: translateX(-100%); height: 100%; }
@@ -41,12 +50,18 @@
     <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <div id="orderModal" class="fixed inset-0 z-[300] flex items-center justify-center px-6 modal-overlay hidden-modal">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeOrderModal()"></div>
+        <div class="absolute inset-0" onclick="closeOrderModal()"></div>
         <div class="glass-panel w-full max-w-[480px] p-8 rounded-[2.5rem] relative z-10 modal-content border-blue-500/20">
-            <h3 class="text-2xl font-black mb-1">Escrow Initiation</h3>
+            <h3 class="text-2xl font-black mb-1" id="modalHeaderTitle">Buy USDT</h3>
             <p class="text-slate-500 text-xs mb-8 uppercase tracking-widest">Node: <span id="modalMerchant" class="text-blue-400">---</span></p>
+
+            <div class="flex border-b border-white/5 mb-8">
+                <button onclick="setModalStep(1)" id="step1Btn" class="flex-1 pb-4 text-[10px] font-black uppercase tracking-widest step-btn active">Summary</button>
+                <button onclick="setModalStep(2)" id="step2Btn" class="flex-1 pb-4 text-[10px] font-black uppercase tracking-widest step-btn">Payment</button>
+                <button onclick="setModalStep(3)" id="step3Btn" class="flex-1 pb-4 text-[10px] font-black uppercase tracking-widest step-btn">Proof</button>
+            </div>
             
-            <div class="space-y-6">
+            <div id="modalStep1" class="space-y-6">
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Amount to Trade (USD)</label>
                     <div class="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center mt-2">
@@ -55,21 +70,44 @@
                     </div>
                     <p class="text-[9px] text-slate-600 mt-2 font-bold uppercase" id="limitLabel">Limit: ---</p>
                 </div>
-
                 <div class="bg-blue-600/5 border border-blue-500/10 p-6 rounded-3xl text-center">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">You Receive Est.</label>
                     <div class="text-3xl font-black text-blue-400 mt-1" id="receiveDisplay">0.00 <span class="text-sm" id="modalAsset">---</span></div>
                 </div>
+                <button onclick="setModalStep(2)" class="btn-prime w-full py-4 rounded-2xl font-black text-white text-xs uppercase shadow-xl">Proceed to Payment</button>
+            </div>
 
-                <button id="confirmTradeBtn" onclick="initiateEscrow()" class="btn-prime w-full py-4 rounded-2xl font-black text-white text-lg shadow-xl hover:scale-[1.02] transition-transform">Initialize Escrow Lock</button>
+            <div id="modalStep2" class="hidden space-y-6 text-left">
+                <div class="bg-black/40 p-6 rounded-3xl space-y-4">
+                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Secure Payment Rails</p>
+                    <div class="space-y-2">
+                        <label class="text-[9px] text-slate-500 uppercase font-bold">TRC20 Wallet Address</label>
+                        <div class="flex items-center gap-2 bg-black/20 p-3 rounded-xl border border-white/5">
+                            <span class="text-[10px] font-mono text-white truncate" id="targetAddr">TPbLp16S3uiHkTwAanixjDzWC3qP4aZ3mr</span>
+                            <button onclick="copyAddress()" class="text-blue-400 p-1.5 hover:bg-blue-600/10 rounded-lg"><i data-lucide="copy" class="w-4"></i></button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed italic">Transactional window: 15 minutes. Verification starts immediately upon proof upload.</p>
+                </div>
+                <button onclick="setModalStep(3)" class="btn-prime w-full py-4 rounded-2xl font-black text-white text-xs uppercase">I have Sent Payment</button>
+            </div>
+
+            <div id="modalStep3" class="hidden space-y-6">
+                <div onclick="document.getElementById('proofInput').click()" class="border-2 border-dashed border-white/10 rounded-3xl p-10 text-center hover:bg-white/5 transition cursor-pointer">
+                    <input type="file" id="proofInput" class="hidden" accept="image/*">
+                    <i data-lucide="image" class="w-10 h-10 mx-auto mb-4 text-slate-600"></i>
+                    <p class="text-xs font-bold text-white uppercase">Upload Transfer Screenshot</p>
+                    <p class="text-[9px] text-slate-500 mt-1 uppercase">Final Step for Node Verification</p>
+                </div>
+                <button id="confirmTradeBtn" onclick="initiateEscrow()" class="btn-prime w-full py-4 rounded-2xl font-black text-white text-xs uppercase shadow-xl">Authorize Ledger Sync</button>
             </div>
         </div>
     </div>
 
     <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6">
-        <div class="hidden lg:flex items-center gap-3 mb-10 px-2">
+        <div class="flex items-center gap-3 mb-10 px-2">
             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
-            <span class="font-extrabold text-xl tracking-tighter">primeP2P</span>
+            <span class="font-extrabold text-xl tracking-tighter text-white">primeP2P</span>
         </div>
         <nav class="space-y-2 flex-1">
             <a href="dashboard.html" class="nav-link"><i data-lucide="layout-grid" class="w-5"></i> Portfolio</a>
@@ -82,9 +120,9 @@
         </nav>
         <div class="mt-auto pt-6 border-t border-white/5 flex items-center gap-4 mb-6">
             <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-sm" id="userAvatar">U</div>
-            <div class="flex flex-col">
+            <div class="flex flex-col text-left">
                 <span class="text-xs font-bold truncate w-32 text-white" id="userNameDisplay">---</span>
-                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Node Online</span>
+                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Node: Online</span>
             </div>
         </div>
     </aside>
@@ -93,20 +131,20 @@
         <header class="lg:hidden fixed top-0 left-0 w-full z-[140] bg-[#05070a]/80 backdrop-blur-xl border-b border-white/5 p-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
-                <span class="font-extrabold text-lg tracking-tighter">primeP2P</span>
+                <span class="font-extrabold text-lg tracking-tighter text-white">primeP2P</span>
             </div>
             <button onclick="toggleSidebar()" class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="menu" class="w-5"></i></button>
         </header>
 
-        <div class="mb-12">
-            <h2 class="text-3xl font-black mb-1">Global Market</h2>
+        <div class="mb-12 text-left">
+            <h2 class="text-4xl font-black mb-1 text-white tracking-tighter">Global Market</h2>
             <p class="text-slate-500 text-sm">Institutional P2P nodes providing cross-border liquidity in USD.</p>
         </div>
 
-        <div class="glass-panel p-6 rounded-[2rem] mb-8 flex flex-wrap items-center justify-between gap-6">
+        <div class="glass-panel p-6 rounded-[2rem] mb-12 flex flex-wrap items-center justify-between gap-6">
             <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5">
-                <button id="buyBtn" onclick="setTradeType('buy')" class="px-8 py-2.5 rounded-xl text-sm font-black transition-all bg-blue-600 text-white">BUY</button>
-                <button id="sellBtn" onclick="setTradeType('sell')" class="px-8 py-2.5 rounded-xl text-sm font-black transition-all text-slate-500">SELL</button>
+                <button id="buyBtn" onclick="setTradeType('buy')" class="px-10 py-2.5 rounded-xl text-xs font-black transition-all bg-blue-600 text-white">BUY</button>
+                <button id="sellBtn" onclick="setTradeType('sell')" class="px-10 py-2.5 rounded-xl text-xs font-black transition-all text-slate-500">SELL</button>
             </div>
             <div class="flex items-center gap-4">
                 <select id="assetFilter" onchange="fetchMarket()" class="bg-black/40 border border-white/10 px-6 py-2.5 rounded-xl text-xs font-bold text-white outline-none focus:border-blue-500 transition">
@@ -116,15 +154,8 @@
             </div>
         </div>
 
-        <div class="px-8 py-4 hidden md:flex text-[10px] font-black text-slate-600 uppercase tracking-[0.25em]">
-            <div class="flex-1">Institutional Node</div>
-            <div class="flex-1 text-center">Price (USD)</div>
-            <div class="flex-1 text-center">Node Limits</div>
-            <div class="flex-1 text-right">Rails / Action</div>
-        </div>
-
-        <div id="p2pListings" class="grid gap-3">
-            <div class="p-20 text-center animate-pulse text-slate-600 font-bold uppercase">Connecting to Node...</div>
+        <div id="p2pListings" class="market-grid">
+            <div class="p-20 text-center animate-pulse text-slate-600 font-bold uppercase col-span-full">Querying Market Nodes...</div>
         </div>
     </main>
 
@@ -142,15 +173,27 @@
 
         function setTradeType(type) {
             currentTradeType = type;
-            document.getElementById('buyBtn').className = type === 'buy' ? "px-8 py-2.5 rounded-xl text-sm font-black transition-all bg-blue-600 text-white" : "px-8 py-2.5 rounded-xl text-sm font-black transition-all text-slate-500";
-            document.getElementById('sellBtn').className = type === 'sell' ? "px-8 py-2.5 rounded-xl text-sm font-black transition-all bg-blue-600 text-white" : "px-8 py-2.5 rounded-xl text-sm font-black transition-all text-slate-500";
+            document.getElementById('buyBtn').className = type === 'buy' ? "px-10 py-2.5 rounded-xl text-xs font-black transition-all bg-blue-600 text-white" : "px-10 py-2.5 rounded-xl text-xs font-black transition-all text-slate-500";
+            document.getElementById('sellBtn').className = type === 'sell' ? "px-10 py-2.5 rounded-xl text-xs font-black transition-all bg-blue-600 text-white" : "px-10 py-2.5 rounded-xl text-xs font-black transition-all text-slate-500";
             fetchMarket();
+        }
+
+        function setModalStep(step) {
+            [1, 2, 3].forEach(s => document.getElementById(`modalStep${s}`).classList.add('hidden'));
+            [1, 2, 3].forEach(s => document.getElementById(`step${s}Btn`).classList.remove('active'));
+            document.getElementById(`modalStep${step}`).classList.remove('hidden');
+            document.getElementById(`step${step}Btn`).classList.add('active');
+            lucide.createIcons();
+        }
+
+        function copyAddress() {
+            navigator.clipboard.writeText(document.getElementById('targetAddr').innerText);
+            showToast("Address Copied", "success");
         }
 
         async function fetchMarket() {
             const asset = document.getElementById('assetFilter').value;
             const list = document.getElementById('p2pListings');
-            list.innerHTML = `<div class="p-20 text-center animate-pulse text-slate-600 font-bold uppercase tracking-widest">Querying ${asset} Global Liquidity...</div>`;
             
             try {
                 const response = await fetch(WEB_APP_URL, {
@@ -161,38 +204,65 @@
                 const data = await response.json();
                 
                 if (!data.listings || data.listings.length === 0) {
-                    list.innerHTML = `<div class="glass-panel p-20 rounded-[2rem] text-center text-slate-500">No verified global ${currentTradeType} nodes.</div>`;
+                    list.innerHTML = `<div class="glass-panel p-20 rounded-[2rem] text-center text-slate-500 col-span-full italic">No active global nodes found.</div>`;
                     return;
                 }
 
+                /* UPDATED MERCHANT CARDS LAYOUT */
                 list.innerHTML = data.listings.map(node => `
-                    <div class="glass-panel p-6 rounded-[1.5rem] flex flex-col md:flex-row items-center justify-between gap-6 hover:border-blue-500/30 transition-all text-white">
-                        <div class="flex-1 w-full flex items-center gap-4">
-                            <div class="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center font-black text-blue-400">${node.merchant[0]}</div>
+                    <div class="glass-panel p-8 rounded-[2.5rem] border-white/5 relative group hover:border-blue-500/30 transition-all duration-500 text-left">
+                        <div class="flex justify-between items-start mb-8">
+                            <div class="flex items-center gap-4">
+                                <div class="relative w-14 h-14 rounded-full border-2 border-white/10 overflow-hidden bg-black/40">
+                                    <img src="${node.avatar}" class="w-full h-full object-cover" 
+                                         onerror="this.src='https://ui-avatars.com/api/?name=${node.merchant}&background=0D1117&color=3b82f6&bold=true'">
+                                    <span class="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-[#05070a] shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></span>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-lg leading-tight uppercase tracking-tighter">${node.merchant}</h4>
+                                    <div class="flex items-center gap-1 mt-1 text-yellow-500">
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                        <span class="text-[10px] font-bold text-slate-400">4.8 (214)</span>
+                                    </div>
+                                    <p class="text-[9px] font-black uppercase text-green-500 tracking-widest mt-1">Active Now</p>
+                                </div>
+                            </div>
+                            <button onclick="openEscrowModal('${node.merchant}', ${node.price}, ${node.min}, ${node.max}, '${asset}')" 
+                                    class="bg-blue-600 text-white px-7 py-3 rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-blue-900/20 hover:scale-105 transition-all">
+                                ${currentTradeType.toUpperCase()}
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6">
                             <div>
-                                <h4 class="font-bold flex items-center gap-2">${node.merchant} <i data-lucide="badge-check" class="w-4 text-blue-400"></i></h4>
-                                <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">${node.rating}% Rep</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Exchange Rate</p>
+                                <h5 class="text-3xl font-black text-white tracking-tighter">$${parseFloat(node.price).toLocaleString()}</h5>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Status</p>
+                                <h5 class="text-xs font-bold text-slate-300 uppercase italic tracking-tighter">Verified Node</h5>
                             </div>
                         </div>
-                        <div class="flex-1 text-center"><h5 class="text-2xl font-black text-green-400">$${parseFloat(node.price).toLocaleString()}</h5></div>
-                        <div class="flex-1 text-center"><p class="text-sm font-bold text-slate-200">$${node.min.toLocaleString()} - $${node.max.toLocaleString()}</p><p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">USD</p></div>
-                        <div class="flex-1 w-full flex items-center justify-between md:justify-end gap-6">
-                            <span class="text-[10px] bg-green-500/10 text-green-500 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest">${node.payment}</span>
-                            <button onclick="openEscrowModal('${node.merchant}', ${node.price}, ${node.min}, ${node.max}, '${asset}')" class="btn-prime px-8 py-3 rounded-xl font-black text-[11px] text-white uppercase tracking-widest hover:scale-105 active:scale-95 transition">Authorize</button>
+
+                        <div class="pt-6 border-t border-white/5 space-y-3">
+                            <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-500 uppercase tracking-widest">Node Limits</span><span class="text-white tracking-tighter">$${node.min.toLocaleString()} - $${node.max.toLocaleString()}</span></div>
+                            <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-500 uppercase tracking-widest">Payment Rails</span><span class="text-blue-400 font-black uppercase tracking-tighter">${node.payment}</span></div>
                         </div>
                     </div>`).join('');
                 lucide.createIcons();
-            } catch (e) { showToast("Global Connection Failure", "error"); }
+            } catch (e) { showToast("Node Connection Failure", "error"); }
         }
 
         function openEscrowModal(merchant, price, min, max, asset) {
             selectedNode = { merchant, price, min, max, asset };
             document.getElementById('modalMerchant').innerText = merchant;
             document.getElementById('modalAsset').innerText = asset;
-            document.getElementById('limitLabel').innerText = `Limit: $${min.toLocaleString()} - $${max.toLocaleString()} USD`;
+            document.getElementById('modalHeaderTitle').innerText = `${currentTradeType.toUpperCase()} ${asset}`;
+            document.getElementById('limitLabel').innerText = `Node Limit: $${min.toLocaleString()} - $${max.toLocaleString()} USD`;
             document.getElementById('receiveDisplay').innerText = `0.00 ${asset}`;
             document.getElementById('tradeAmt').value = "";
             document.getElementById('orderModal').classList.remove('hidden-modal');
+            setModalStep(1);
         }
 
         function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden-modal'); }
@@ -205,20 +275,12 @@
 
         async function initiateEscrow() {
             const amt = document.getElementById('tradeAmt').value;
-            
-            // FIXED: Pull actual email from localStorage instead of using fallback string
             const userEmail = localStorage.getItem('user_email');
-            
-            if (!userEmail) {
-                showToast("Session Error: Please Login Again", "error");
-                setTimeout(() => window.location.href = 'index.html', 2000);
-                return;
-            }
-
-            if (amt < selectedNode.min || amt > selectedNode.max) return showToast("Volume outside node limits", "error");
+            if (!userEmail) return showToast("Session Expired", "error");
+            if (amt < selectedNode.min || amt > selectedNode.max) return showToast("Amount outside node limits", "error");
             
             const btn = document.getElementById('confirmTradeBtn');
-            btn.innerText = "Locking Liquidity...";
+            btn.innerText = "Encrypting Ledger...";
             btn.disabled = true;
 
             try {
@@ -235,19 +297,15 @@
                     })
                 });
                 const result = await response.json();
-
                 if (result.success) {
-                    showToast(`Trade ID: ${result.tradeId} Initialized`, "success");
+                    showToast(`Trade Initialized`, "success");
                     setTimeout(() => { window.location.href = `transaction.html?id=${result.tradeId}`; }, 1500);
                 } else {
                     showToast(result.message, "error");
                     btn.disabled = false;
-                    btn.innerText = "Authorize Escrow Lock";
+                    btn.innerText = "Authorize Ledger Sync";
                 }
-            } catch (e) {
-                showToast("Ledger Sync Failure", "error");
-                btn.disabled = false;
-            }
+            } catch (e) { showToast("Sync Failure", "error"); btn.disabled = false; }
         }
 
         function showToast(m, t) {
@@ -258,8 +316,6 @@
             c.appendChild(toast); lucide.createIcons(); setTimeout(() => toast.classList.add('show'), 100);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
-
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
         window.onload = () => {
             const n = localStorage.getItem('user_name');
