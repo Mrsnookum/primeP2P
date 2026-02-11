@@ -13,6 +13,14 @@
         .btn-release { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: all 0.3s ease; }
         .tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
         
+        /* High-Fidelity Responsive Grid Fix */
+        .market-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.25rem; 
+            width: 100%;
+        }
+
         #toastContainer { position: fixed; top: 1rem; right: 1rem; left: 1rem; z-index: 2000; pointer-events: none; }
         @media (min-width: 768px) { #toastContainer { left: auto; width: 400px; } }
         
@@ -49,21 +57,63 @@
     </div>
 
     <div id="marketModal" class="fixed inset-0 flex items-center justify-center px-4 modal-overlay">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeMarketModal()"></div>
-        <div class="glass-panel w-full max-w-[480px] p-6 md:p-10 rounded-[2.5rem] relative z-10 border-blue-500/30">
-            <h3 class="text-xl font-black text-white mb-6">New Liquidity Node</h3>
-            <div class="grid grid-cols-2 gap-3">
-                <input id="mkName" type="text" class="col-span-2 bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none focus:border-blue-500" placeholder="Merchant ID">
-                <select id="mkAsset" class="bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none"><option value="USDT">USDT</option><option value="BTC">BTC</option><option value="SOL">SOL</option></select>
-                <select id="mkType" class="bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none"><option value="buy">BUY</option><option value="sell">SELL</option></select>
-                <input id="mkPrice" type="number" class="bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="Rate USD">
-                <input id="mkPayment" type="text" class="bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="M-PESA">
-                <input id="mkMin" type="number" class="bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="Min USD">
-                <input id="mkMax" type="number" class="bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="Max USD">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeMarketModal()"></div>
+    <div class="glass-panel w-full max-w-[480px] p-6 md:p-10 rounded-[2.5rem] relative z-10 border-blue-500/30">
+        <h3 class="text-xl font-black text-white mb-6 uppercase italic tracking-tighter">Initialize Liquidity Node</h3>
+        
+        <div class="grid grid-cols-2 gap-3 text-left">
+            <div class="col-span-2 space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Node ID / Name</label>
+                <input id="mkName" type="text" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none focus:border-blue-500" placeholder="e.g. Nile_Liquidity">
             </div>
-            <button onclick="saveMarketMaker()" id="saveMkBtn" class="w-full py-4 mt-6 bg-blue-600 text-white rounded-xl font-black text-xs uppercase shadow-lg">Initialize Node</button>
+            
+            <div class="col-span-2 space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Merchant Profile Photo</label>
+                <div class="flex gap-2">
+                    <input id="mkFile" type="file" accept="image/*" class="hidden" onchange="handleAdminFileSelect(this)">
+                    <button onclick="document.getElementById('mkFile').click()" class="flex-1 bg-black/40 border border-white/5 p-3.5 rounded-xl text-xs text-slate-400 text-left hover:border-blue-500 transition truncate">
+                        <span id="mkFileName">Select Image File...</span>
+                    </button>
+                </div>
+                <input type="hidden" id="mkBase64">
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Asset</label>
+                <select id="mkAsset" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none">
+                    <option value="USDT">USDT</option>
+                    <option value="BTC">BTC</option>
+                    <option value="SOL">SOL</option>
+                </select>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Node Action</label>
+                <select id="mkType" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none">
+                    <option value="buy">BUY</option>
+                    <option value="sell">SELL</option>
+                </select>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Exchange Rate (USD)</label>
+                <input id="mkPrice" type="number" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="0.00">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Payment Rails</label>
+                <input id="mkPayment" type="text" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="M-PESA, Bank">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Min Limit</label>
+                <input id="mkMin" type="number" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="Min USD">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Max Limit</label>
+                <input id="mkMax" type="number" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="Max USD">
+            </div>
         </div>
+        
+        <button onclick="saveMarketMaker()" id="saveMkBtn" class="w-full py-4 mt-6 bg-blue-600 text-white rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 transition">Deploy Node Listing</button>
     </div>
+</div>
 
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
@@ -87,10 +137,10 @@
             <button onclick="switchTab('logs')" id="tabBtn-logs" class="tab-btn pb-4 text-[11px] font-black uppercase tracking-widest px-2 text-slate-500">System Logs</button>
         </div>
 
-        <div id="tab-trades" class="tab-content grid gap-4"><div id="adminLedger" class="grid gap-3"></div></div>
+        <div id="tab-trades" class="tab-content grid gap-4"><div id="adminLedger" class="market-grid"></div></div>
         
         <div id="tab-withdrawals" class="tab-content hidden grid gap-4">
-            <div id="withdrawalQueue" class="grid gap-3"></div>
+            <div id="withdrawalQueue" class="market-grid"></div>
         </div>
 
         <div id="tab-identity" class="tab-content hidden grid gap-6">
@@ -98,11 +148,11 @@
                 <h3 class="font-black text-white text-[10px] uppercase tracking-widest">Verification Requests</h3>
                 <span class="bg-blue-600/10 text-blue-400 text-[9px] font-black px-3 py-1 rounded-full border border-blue-500/20">Manual Review Mode</span>
             </div>
-            <div id="kycReviewQueue" class="grid gap-4"></div>
+            <div id="kycReviewQueue" class="market-grid"></div>
         </div>
 
-        <div id="tab-users" class="tab-content hidden grid gap-4"><div id="userTableBody" class="grid gap-3"></div></div>
-        <div id="tab-market" class="tab-content hidden"><div class="flex justify-between items-center mb-6"><h3 class="font-black text-white text-[10px] uppercase">Liquidity</h3><button onclick="openMarketModal()" class="bg-blue-600 px-5 py-2 rounded-xl text-[9px] font-black text-white">+ New Pair</button></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="marketGrid"></div></div>
+        <div id="tab-users" class="tab-content hidden grid gap-4"><div id="userTableBody" class="market-grid"></div></div>
+        <div id="tab-market" class="tab-content hidden"><div class="flex justify-between items-center mb-6"><h3 class="font-black text-white text-[10px] uppercase">Liquidity</h3><button onclick="openMarketModal()" class="bg-blue-600 px-5 py-2 rounded-xl text-[9px] font-black text-white">+ New Pair</button></div><div class="market-grid" id="marketGrid"></div></div>
         <div id="tab-broadcast" class="tab-content hidden"><div class="glass-panel p-6 rounded-[2rem] border-blue-500/20 max-w-xl mx-auto text-center"><h3 class="text-xl font-black text-white mb-6">Priority Signal</h3><textarea id="broadcastMsg" rows="4" class="w-full bg-black/40 border border-white/5 p-5 rounded-2xl text-sm text-white outline-none focus:border-blue-500 transition mb-6" placeholder="Message all nodes..."></textarea><button onclick="sendGlobalBroadcast()" id="broadcastBtn" class="w-full py-4 bg-blue-600 text-white rounded-xl font-black text-xs uppercase transition">Execute Broadcast</button></div></div>
         
         <div id="tab-logs" class="tab-content hidden">
@@ -135,7 +185,7 @@
                 const logRes = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_get_logs' }) });
                 const logData = await logRes.json();
                 if (data.success) { 
-                    renderTrades(data.trades); 
+                    renderTrades(data.trades, logData.logs); 
                     renderWithdrawals(data.trades); 
                     renderUsers(data.users); 
                     renderMarket(data.market);
@@ -145,67 +195,86 @@
             } catch (e) { showToast("Sync Error", "error"); }
         }
 
-        function renderTrades(trades) {
+        function renderTrades(trades, logs) {
             const container = document.getElementById('adminLedger');
             const pending = trades.filter(t => t.status === "PAID" && t.merchant !== "WITHDRAWAL");
-            if (pending.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm">Clear Trade Queue.</div>`; return; }
-            container.innerHTML = pending.map(t => `
-                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4 border-white/5">
-                    <div class="flex justify-between items-start"><div><p class="text-[8px] font-black text-blue-500 uppercase">${t.tradeId}</p><h4 class="text-sm font-bold text-white">${t.userEmail}</h4></div><span class="px-2 py-1 rounded bg-orange-500/10 text-orange-500 text-[8px] font-black border border-orange-500/20">PAID</span></div>
-                    <div class="flex justify-between items-center bg-black/40 p-4 rounded-xl"><div class="text-xs font-black text-green-400">$${t.amount}</div><div class="text-[9px] text-slate-400">${t.crypto} ${t.asset}</div></div>
-                    <button onclick="releaseEscrow('${t.tradeId}')" class="w-full py-3.5 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase shadow-lg">Release Assets</button>
-                </div>`).join('');
+            if (pending.length === 0) { container.innerHTML = `<div class="glass-panel p-20 rounded-2xl text-center text-slate-500 italic text-sm col-span-full">Clear Trade Queue.</div>`; return; }
+            
+            container.innerHTML = pending.map(t => {
+                const proofLog = logs.find(l => l[3].includes(t.tradeId) && l[2] === "PROOF_UPLOADED");
+                const proofUrl = proofLog ? proofLog[3].split('|')[1] : "";
+
+                return `
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] border-white/5 space-y-4 text-left flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[8px] font-black text-blue-500 uppercase tracking-widest">${t.tradeId}</p>
+                                <h4 class="text-[11px] md:text-sm font-bold text-white truncate w-40">${t.userEmail}</h4>
+                            </div>
+                            <span class="px-2 py-1 rounded bg-orange-500/10 text-orange-500 text-[8px] font-black">PAID</span>
+                        </div>
+                        
+                        <div class="bg-black/40 p-4 rounded-xl space-y-2">
+                            <div class="flex justify-between text-xs font-black text-white"><span>Amount</span><span>$${t.amount}</span></div>
+                            <div class="flex justify-between text-[10px] font-bold text-green-400 border-t border-white/5 pt-2"><span>Release</span><span>${t.crypto} ${t.asset}</span></div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-[8px] font-black text-slate-500 uppercase">Proof</p>
+                            <div class="aspect-video bg-black/60 rounded-xl border border-white/5 overflow-hidden">
+                                ${proofUrl ? `<iframe src="${proofUrl}" class="w-full h-full border-none"></iframe>` : 
+                                `<div class="w-full h-full flex items-center justify-center text-slate-700 text-[8px] font-bold uppercase italic">No Proof Uploaded</div>`}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="releaseEscrow('${t.tradeId}')" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-black text-[10px] uppercase active:scale-95 transition">Release</button>
+                        <button onclick="rejectTrade('${t.tradeId}')" class="flex-1 bg-red-600/10 text-red-500 py-3 rounded-xl font-black text-[10px] uppercase border border-red-500/20 active:scale-95 transition">Reject</button>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function renderWithdrawals(trades) {
             const container = document.getElementById('withdrawalQueue');
             const requests = trades.filter(t => t.merchant === "WITHDRAWAL" && t.status === "PENDING_APPROVAL");
-            if (requests.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm">No Pending Withdrawals.</div>`; return; }
+            if (requests.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full">No Pending Withdrawals.</div>`; return; }
             container.innerHTML = requests.map(r => `
-                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4 border-red-500/10">
+                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4 border-red-500/10 text-left">
                     <div class="flex justify-between items-start">
-                        <div><p class="text-[8px] font-black text-red-500 uppercase">${r.tradeId}</p><h4 class="text-sm font-bold text-white">${r.userEmail}</h4></div>
-                        <span class="px-2 py-1 rounded bg-red-500/10 text-red-500 text-[8px] font-black">APPROVAL REQUIRED</span>
+                        <div><p class="text-[8px] font-black text-red-500 uppercase">${r.tradeId}</p><h4 class="text-sm font-bold text-white truncate w-40">${r.userEmail}</h4></div>
                     </div>
-                    <div class="bg-black/40 p-4 rounded-xl space-y-2 text-left">
-                        <div class="flex justify-between text-xs font-black text-white"><span>Amount:</span><span class="text-red-400">$${r.amount}</span></div>
+                    <div class="bg-black/40 p-4 rounded-xl space-y-2">
+                        <div class="flex justify-between text-xs font-black text-white"><span>Amt</span><span class="text-red-400">$${r.amount}</span></div>
                         <div class="flex flex-col gap-1 border-t border-white/5 pt-2">
-                            <span class="text-[8px] text-slate-500 uppercase font-black">Destination ${r.asset} Address:</span>
-                            <span class="text-[10px] font-mono text-blue-400 break-all bg-black/20 p-2 rounded">${r.crypto}</span>
+                            <span class="text-[8px] text-slate-500 uppercase font-black">To: ${r.asset}</span>
+                            <span class="text-[8px] font-mono text-blue-400 break-all">${r.crypto}</span>
                         </div>
                     </div>
-                    <button onclick="approveWithdrawal('${r.tradeId}')" class="w-full py-3.5 bg-red-600 text-white rounded-xl font-black text-[9px] uppercase shadow-lg">Confirm & Deduct Balance</button>
+                    <button onclick="approveWithdrawal('${r.tradeId}')" class="w-full py-2.5 bg-red-600 text-white rounded-xl font-black text-[8px] uppercase">Confirm Deduct</button>
                 </div>`).join('');
         }
 
-        // UPDATED KYC RENDERER WITH IFRAMES
         function renderKYCQueue(users, logs) {
             const container = document.getElementById('kycReviewQueue');
             const pendingUsers = users.filter(u => u.kyc === 1.5);
-            if (pendingUsers.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm">No pending Identity Nodes.</div>`; return; }
+            if (pendingUsers.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full">No pending Identity Nodes.</div>`; return; }
             container.innerHTML = pendingUsers.map(u => {
                 const kycLog = logs.find(l => l[1] === u.email && l[2] === "KYC_PENDING");
                 const meta = kycLog ? JSON.parse(kycLog[3]) : { docType: "Unknown", front: "", selfie: "" };
                 return `
-                <div class="glass-panel p-6 rounded-[2rem] border-white/5 space-y-6">
-                    <div class="flex justify-between items-start text-left">
-                        <div><h4 class="text-white font-bold">${u.name}</h4><p class="text-[10px] text-blue-400 font-black uppercase tracking-widest">${meta.docType}</p><p class="text-[9px] text-slate-500">${u.email}</p></div>
+                <div class="glass-panel p-6 rounded-[2.5rem] border-white/5 space-y-6 text-left">
+                    <div class="flex justify-between items-start">
+                        <div><h4 class="text-xs font-bold text-white">${u.name}</h4><p class="text-[9px] text-blue-400 font-black uppercase">${meta.docType}</p></div>
                         <div class="flex gap-2">
-                            <button onclick="processKYC('${u.email}', 'APPROVE')" class="bg-green-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-lg">Approve</button>
-                            <button onclick="processKYC('${u.email}', 'REJECT')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-lg">Reject</button>
+                            <button onclick="processKYC('${u.email}', 'APPROVE')" class="bg-green-600 text-white px-3 py-1.5 rounded-xl text-[8px] font-black uppercase">Approve</button>
+                            <button onclick="processKYC('${u.email}', 'REJECT')" class="bg-red-600 text-white px-3 py-1.5 rounded-xl text-[8px] font-black uppercase">Reject</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-2 text-left"><p class="text-[8px] font-black text-slate-500 uppercase ml-2">ID Document</p>
-                            <div class="aspect-video bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
-                                <iframe src="${meta.front}" class="w-full h-full border-none"></iframe>
-                            </div>
-                        </div>
-                        <div class="space-y-2 text-left"><p class="text-[8px] font-black text-slate-500 uppercase ml-2">Live Selfie</p>
-                            <div class="aspect-video bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
-                                <iframe src="${meta.selfie}" class="w-full h-full border-none"></iframe>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="aspect-video bg-black/40 rounded-xl border border-white/5 overflow-hidden"><iframe src="${meta.front}" class="w-full h-full border-none"></iframe></div>
+                        <div class="aspect-video bg-black/40 rounded-xl border border-white/5 overflow-hidden"><iframe src="${meta.selfie}" class="w-full h-full border-none"></iframe></div>
                     </div>
                 </div>`;
             }).join('');
@@ -231,18 +300,39 @@
             }, 'danger');
         }
 
+        async function releaseEscrow(id) {
+            openConfirmModal("Authorize Asset Release", "Confirm payment verification to synchronize global ledger assets?", async () => {
+                try {
+                    const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_release_escrow', tradeId: id }) });
+                    const result = await res.json();
+                    if(result.success) { showToast("Trade Finalized", "success"); loadAdminData(); }
+                } catch (e) { showToast("Ledger Sync Failure", "error"); }
+            });
+        }
+
+        // IMPLEMENTED REJECT LOGIC
+        async function rejectTrade(id) {
+            openConfirmModal("Reject Transaction", "Invalid proof or funds not received? Rejecting will cancel this session.", async () => {
+                try {
+                    const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'update_trade_status', tradeId: id, status: 'REJECTED' }) });
+                    const result = await res.json();
+                    if(result.success) { showToast("Transaction Rejected", "error"); loadAdminData(); }
+                } catch (e) { showToast("Signal Failure", "error"); }
+            }, 'danger');
+        }
+
         function renderUsers(users) {
             const container = document.getElementById('userTableBody');
             container.innerHTML = users.map(u => `
-                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between border-white/5">
-                    <div><h4 class="text-xs font-bold text-white">${u.name}</h4><p class="text-[9px] text-slate-500">${u.email} | Level ${u.kyc}</p></div>
-                    <button onclick="toggleUserStatus('${u.email}', '${u.status}')" class="px-4 py-2 rounded-lg text-[8px] font-black uppercase ${u.status === 'ACTIVE' ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}">${u.status === 'ACTIVE' ? 'Ban' : 'Activate'}</button>
+                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between border-white/5 text-left">
+                    <div><h4 class="text-[10px] font-bold text-white truncate w-40">${u.name}</h4><p class="text-[8px] text-slate-500">${u.email}</p></div>
+                    <button onclick="toggleUserStatus('${u.email}', '${u.status}')" class="px-3 py-1.5 rounded-lg text-[7px] font-black uppercase ${u.status === 'ACTIVE' ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}">${u.status === 'ACTIVE' ? 'Ban' : 'Activate'}</button>
                 </div>`).join('');
         }
 
         function renderMarket(market) {
             const grid = document.getElementById('marketGrid');
-            grid.innerHTML = market.map(m => `<div class="glass-panel p-5 rounded-2xl border-white/5 relative text-left"><button onclick="deleteMarket('${m.merchant}', '${m.asset}')" class="absolute top-4 right-4 text-red-500/40"><i data-lucide="trash-2" class="w-4"></i></button><p class="text-[8px] font-black text-blue-400 uppercase">${m.type} ${m.asset}</p><h4 class="text-sm font-black text-white mt-1">${m.merchant}</h4><div class="mt-4 text-lg font-black text-green-400">$${m.price}</div></div>`).join('');
+            grid.innerHTML = market.map(m => `<div class="glass-panel p-4 rounded-2xl border-white/5 relative text-left"><button onclick="deleteMarket('${m.merchant}', '${m.asset}')" class="absolute top-3 right-3 text-red-500/40"><i data-lucide="trash-2" class="w-3"></i></button><p class="text-[7px] font-black text-blue-400 uppercase">${m.type} ${m.asset}</p><h4 class="text-xs font-black text-white mt-1">${m.merchant}</h4><div class="mt-2 text-md font-black text-green-400">$${m.price}</div></div>`).join('');
             lucide.createIcons();
         }
 
@@ -255,15 +345,54 @@
             }).join('');
         }
 
-        async function saveMarketMaker() {
-            const btn = document.getElementById('saveMkBtn');
-            const payload = { action: 'admin_manage_market', mode: 'add', merchant: document.getElementById('mkName').value, asset: document.getElementById('mkAsset').value, type: document.getElementById('mkType').value, price: document.getElementById('mkPrice').value, min: document.getElementById('mkMin').value, max: document.getElementById('mkMax').value, payment: document.getElementById('mkPayment').value };
-            if(!payload.merchant || !payload.price) return showToast("Required fields empty", "error");
-            btn.innerText = "Syncing..."; btn.disabled = true;
-            try { const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); const result = await res.json(); if(result.success) { showToast("Listing Node Added", "success"); closeMarketModal(); loadAdminData(); } } catch (e) { showToast("Sync Error", "error"); }
-            btn.innerText = "Initialize Node"; btn.disabled = false;
-        }
+        function handleAdminFileSelect(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Convert to Base64 for Drive transmission
+            document.getElementById('mkBase64').value = e.target.result;
+            document.getElementById('mkFileName').innerText = input.files[0].name;
+            document.getElementById('mkFileName').classList.add("text-blue-400", "font-bold");
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 
+async function saveMarketMaker() {
+    const btn = document.getElementById('saveMkBtn');
+    const payload = { 
+        action: 'admin_manage_market', 
+        mode: 'add', 
+        merchant: document.getElementById('mkName').value, 
+        base64Image: document.getElementById('mkBase64').value, // Transmits the file
+        asset: document.getElementById('mkAsset').value, 
+        type: document.getElementById('mkType').value, 
+        price: document.getElementById('mkPrice').value, 
+        min: document.getElementById('mkMin').value, 
+        max: document.getElementById('mkMax').value, 
+        payment: document.getElementById('mkPayment').value 
+    };
+
+    if(!payload.merchant || !payload.base64Image) {
+        return showToast("ID and Image are required", "error");
+    }
+    
+    btn.innerText = "Transforming via Drive...";
+    btn.disabled = true;
+
+    try { 
+        const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); 
+        const result = await res.json(); 
+        if(result.success) { 
+            showToast("Market Node Initialized", "success"); 
+            closeMarketModal(); 
+            loadAdminData(); 
+            document.getElementById('mkBase64').value = ""; // Reset
+        } 
+    } catch (e) { showToast("Sync Error", "error"); }
+    btn.innerText = "Deploy Node Listing"; 
+    btn.disabled = false;
+}
         async function toggleUserStatus(email, currentStatus) {
             const newStatus = currentStatus === 'ACTIVE' ? 'BANNED' : 'ACTIVE';
             openConfirmModal(`Confirm Node ${newStatus}`, `Modify access for ${email}?`, async () => {
@@ -277,13 +406,6 @@
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_manage_market', mode: 'delete', merchant, asset }) });
                 const result = await res.json(); if(result.success) { showToast("Pair Removed", "success"); loadAdminData(); }
             }, 'danger');
-        }
-
-        async function releaseEscrow(id) {
-            openConfirmModal("Release Assets", `Credit buyer for trade ${id}?`, async () => {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_release_escrow', tradeId: id }) });
-                const result = await res.json(); if(result.success) { showToast("Trade Finalized", "success"); loadAdminData(); }
-            });
         }
 
         async function sendGlobalBroadcast() {
@@ -302,8 +424,8 @@
 
         function showToast(m, t) {
             const c = document.getElementById('toastContainer'); const toast = document.createElement('div');
-            toast.className = `toast glass-panel p-4 rounded-xl flex items-center gap-3 border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
-            toast.innerHTML = `<span class="text-xs font-bold text-white">${m}</span>`;
+            toast.className = `toast glass-panel p-3 rounded-xl border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
+            toast.innerHTML = `<span class="text-[10px] font-bold text-white">${m}</span>`;
             c.appendChild(toast); setTimeout(() => toast.classList.add('show'), 100);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
         }
