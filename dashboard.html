@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard | primeP2Pxchange Node</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 19, 26, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 16px; color: #94a3b8; transition: all 0.2s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: rgba(37, 99, 235, 0.1); color: #3b82f6; }
+        .content-area { height: 100vh; overflow-y: auto; overflow-x: hidden; width: 100%; transition: padding 0.3s ease; }
+        .asset-card { border-radius: 24px; padding: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%); border: 1px solid rgba(255,255,255,0.05); }
+        #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 1000; pointer-events: none; }
+        .toast { pointer-events: auto; transform: translateX(150%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+
+        /* Dropdown UI */
+        .notif-dropdown { transform-origin: top right; transition: all 0.2s ease; opacity: 0; transform: scale(0.95) translateY(-10px); pointer-events: none; }
+        .notif-dropdown.show { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+
+        @media (max-width: 1024px) {
+            .sidebar { position: fixed; left: 0; transform: translateX(-100%); height: 100%; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-blur: 4px; z-index: 150; }
+            .sidebar-overlay.active { display: block; }
+            .content-area { padding-top: 80px; }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <div id="toastContainer" class="flex flex-col gap-3"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <header class="lg:hidden fixed top-0 left-0 w-full z-[140] bg-[#05070a]/80 backdrop-blur-xl border-b border-white/5 p-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
+            <span class="font-extrabold text-lg tracking-tighter">primeP2P</span>
+        </div>
+        <button onclick="toggleSidebar()" class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center"><i data-lucide="menu" class="w-5 text-slate-400"></i></button>
+    </header>
+
+    <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6">
+        <div class="hidden lg:flex items-center gap-3 mb-10 px-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
+            <span class="font-extrabold text-xl tracking-tighter">primeP2P</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="nav-link active"><i data-lucide="layout-grid" class="w-5"></i> Portfolio</a>
+            <a href="wallet.html" class="nav-link"><i data-lucide="wallet" class="w-5"></i> Wallet</a>
+            <a href="p2ptrading.html" class="nav-link"><i data-lucide="repeat" class="w-5"></i> P2P Trading</a>
+            <a href="earn.html" class="nav-link"><i data-lucide="trending-up" class="w-5"></i> Earn / Staking</a>
+            <a href="transaction.html" class="nav-link"><i data-lucide="clock" class="w-5"></i> Transaction History</a>
+            <a href="security.html" class="nav-link"><i data-lucide="lock" class="w-5"></i> Security Node</a>
+            <a href="settings.html" class="nav-link"><i data-lucide="settings" class="w-5"></i> Settings</a>
+        </nav>
+        <div class="mt-auto pt-6 border-t border-white/5">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white" id="userAvatar">U</div>
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-white truncate w-32" id="userNameDisplay">Loading...</span>
+                    <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Node Online</span>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full flex items-center gap-3 text-slate-500 hover:text-red-400 transition text-sm font-bold px-2"><i data-lucide="log-out" class="w-4"></i> Disconnect Node</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 content-area p-6 lg:p-12">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
+            <div>
+                <h2 class="text-3xl font-black mb-1">Portfolio Overview</h2>
+                <p class="text-slate-500 text-sm">Real-time node performance and global asset sync.</p>
+            </div>
+            <div class="flex gap-3 w-full md:w-auto relative">
+                <button onclick="toggleNotifications()" class="relative flex-1 md:flex-none h-12 glass-panel px-6 rounded-2xl flex items-center justify-center hover:bg-white/5 transition">
+                    <i data-lucide="bell" id="bellIcon" class="w-5 text-slate-400"></i>
+                    <div id="notifDot" class="hidden absolute top-3 right-5 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#05070a]"></div>
+                </button>
+
+                <div id="notifDropdown" class="notif-dropdown absolute top-14 right-0 w-80 glass-panel rounded-3xl p-6 z-[250] border-blue-500/20 shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest">System Broadcasts</h4>
+                        <button onclick="toggleNotifications()" class="text-slate-500 hover:text-white"><i data-lucide="x" class="w-4"></i></button>
+                    </div>
+                    <div id="broadcastContainer" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        <p class="text-xs text-slate-600 italic text-center py-4">No active signals detected.</p>
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='wallet.html'" class="flex-[3] md:flex-none bg-white text-black px-8 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-400 transition">
+                    <i data-lucide="plus" class="w-5"></i> Quick Deposit
+                </button>
+            </div>
+        </div>
+
+        <div id="moduleMount">
+            <div id="portfolio-view" class="space-y-8 animate-in fade-in duration-500">
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <div class="glass-panel p-8 rounded-[2.5rem] col-span-2">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total Combined Value</p>
+                        <h3 class="text-4xl md:text-5xl font-black mb-4 text-white">$<span id="totalDisplay">0.00</span></h3>
+                        <div class="flex flex-wrap gap-4">
+                            <span id="pnlTag" class="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-bold flex items-center gap-1"><i data-lucide="trending-up" class="w-3"></i> +0.0% (Live)</span>
+                            <span class="text-xs text-slate-500 font-bold flex items-center" id="fiatDisplay">≈ 0 KES</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-8 rounded-[2.5rem] flex flex-col justify-between">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Active Trades</h4>
+                        <div class="text-center py-4"><div class="text-4xl font-black text-blue-500">0</div><p class="text-xs text-slate-600 font-bold mt-2 uppercase">No Live Escrows</p></div>
+                        <a href="p2ptrading.html" class="w-full py-3 bg-white/5 rounded-xl text-xs font-bold hover:bg-white/10 transition text-white text-center">P2P Market</a>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6" id="assetGrid"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyaqvKDKq21WBqCvtGO2APfxorT1VRwRIyBNybB5fYfqHH_CZ42jpEjqEiNZOCI3Kk/exec";
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        // NOTIFICATION LOGIC
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notifDropdown');
+            const isShowing = dropdown.classList.toggle('show');
+            if (isShowing) document.getElementById('notifDot').classList.add('hidden');
+        }
+
+        let lastAlertTime = localStorage.getItem('last_broadcast_ts') || 0;
+        async function checkBroadcasts() {
+            try {
+                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'get_active_broadcast' }) });
+                const data = await res.json();
+                if (data.broadcast) {
+                    const container = document.getElementById('broadcastContainer');
+                    container.innerHTML = `
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-blue-500/30 transition">
+                            <p class="text-[11px] text-white leading-relaxed font-medium">${data.broadcast}</p>
+                            <div class="flex justify-between items-center mt-3">
+                                <span class="text-[8px] text-slate-600 font-black uppercase">Signal Received</span>
+                                <span class="text-[8px] text-blue-500 font-bold">${new Date(parseInt(data.timestamp)).toLocaleTimeString()}</span>
+                            </div>
+                        </div>`;
+                    
+                    if (data.timestamp > lastAlertTime) {
+                        document.getElementById('notifDot').classList.remove('hidden');
+                        document.getElementById('bellIcon').classList.add('text-blue-400');
+                        localStorage.setItem('last_broadcast_ts', data.timestamp);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        let balances = { BTC: 0, SOL: 0, USDT: 0 };
+        let marketPrices = { BTC: 0, SOL: 0, USDT: 1 };
+        let kesRate = 129.50;
+
+        async function syncNodeData() {
+            const token = localStorage.getItem('prime_session');
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'get_user_data', token: token })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    balances = data.balances;
+                    renderAssets();
+                    updateTotalValue();
+                }
+            } catch (e) {}
+        }
+
+        function renderAssets() {
+            const grid = document.getElementById('assetGrid');
+            const config = [{id:'BTC', icon:'bitcoin', color:'orange-500'}, {id:'SOL', icon:'gem', color:'blue-500'}, {id:'USDT', icon:'coins', color:'green-500'}];
+            grid.innerHTML = config.map(a => `
+                <div class="asset-card">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-10 h-10 bg-${a.color}/20 rounded-xl flex items-center justify-center"><i data-lucide="${a.icon}" class="text-${a.color} w-6"></i></div>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">${a.id}</span>
+                    </div>
+                    <h5 class="font-black text-xl mb-1 text-white">${balances[a.id] || 0}</h5>
+                    <p class="text-xs text-slate-500 font-bold">$${((balances[a.id] || 0) * marketPrices[a.id]).toLocaleString()}</p>
+                </div>`).join('') + `<div class="asset-card border-dashed border-white/10 flex flex-col items-center justify-center text-slate-600 hover:text-white transition cursor-pointer"><i data-lucide="plus-circle" class="w-8 mb-2"></i><span class="text-[10px] font-black uppercase">Link Asset</span></div>`;
+            lucide.createIcons();
+        }
+
+        function updateTotalValue() {
+            const total = (balances.BTC * marketPrices.BTC) + (balances.SOL * marketPrices.SOL) + (balances.USDT * marketPrices.USDT);
+            document.getElementById('totalDisplay').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('fiatDisplay').innerText = `≈ ${(total * kesRate).toLocaleString()} KES`;
+        }
+
+        async function fetchPrices() {
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,tether&vs_currencies=usd,kes');
+                const data = await res.json();
+                marketPrices = { BTC: data.bitcoin.usd, SOL: data.solana.usd, USDT: data.tether.usd };
+                kesRate = data.tether.kes;
+                updateTotalValue(); renderAssets();
+            } catch (e) {}
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        window.onload = () => {
+            const name = localStorage.getItem('user_name');
+            if (!name) return window.location.href = 'index.html';
+            document.getElementById('userNameDisplay').innerText = name;
+            document.getElementById('userAvatar').innerText = name[0].toUpperCase();
+            syncNodeData(); fetchPrices(); checkBroadcasts();
+            setInterval(fetchPrices, 30000);
+            setInterval(checkBroadcasts, 30000);
+        };
+    </script>
+</body>
+</html>

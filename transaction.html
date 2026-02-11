@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trade Settlement | primeP2Pxchange</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 19, 26, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 16px; color: #94a3b8; transition: all 0.2s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: rgba(37, 99, 235, 0.1); color: #3b82f6; }
+        .content-area { height: 100vh; overflow-y: auto; width: 100%; transition: padding 0.3s ease; }
+        
+        #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 1000; pointer-events: none; }
+        .toast { pointer-events: auto; transform: translateX(150%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+
+        @media (max-width: 1024px) {
+            .sidebar { position: fixed; left: 0; transform: translateX(-100%); height: 100%; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-blur: 4px; z-index: 150; }
+            .sidebar-overlay.active { display: block; }
+            .content-area { padding-top: 80px; }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <div id="toastContainer" class="flex flex-col gap-3"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6">
+        <div class="hidden lg:flex items-center gap-3 mb-10 px-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
+            <span class="font-extrabold text-xl tracking-tighter text-white">primeP2P</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="nav-link"><i data-lucide="layout-grid" class="w-5"></i> Portfolio</a>
+            <a href="wallet.html" class="nav-link"><i data-lucide="wallet" class="w-5"></i> Wallet</a>
+            <a href="p2ptrading.html" class="nav-link"><i data-lucide="repeat" class="w-5"></i> P2P Trading</a>
+            <a href="earn.html" class="nav-link"><i data-lucide="trending-up" class="w-5"></i> Earn / Staking</a>
+            <a href="transaction.html" class="nav-link active"><i data-lucide="clock" class="w-5"></i> History</a>
+            <a href="security.html" class="nav-link"><i data-lucide="lock" class="w-5"></i> Identity Node</a>
+            <a href="settings.html" class="nav-link"><i data-lucide="settings" class="w-5"></i> Settings</a>
+        </nav>
+        <div class="mt-auto pt-6 border-t border-white/5 flex items-center gap-4 mb-6">
+            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-sm" id="userAvatar">U</div>
+            <div class="flex flex-col">
+                <span class="text-xs font-bold truncate w-32 text-white" id="userNameDisplay">---</span>
+                <span class="text-[9px] text-green-500 font-bold uppercase tracking-widest">Node: Online</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 content-area p-6 lg:p-12">
+        <header class="lg:hidden fixed top-0 left-0 w-full z-[140] bg-[#05070a]/80 backdrop-blur-xl border-b border-white/5 p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
+                <span class="font-extrabold text-lg tracking-tighter text-white">primeP2P</span>
+            </div>
+            <button onclick="toggleSidebar()" class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="menu" class="w-5"></i></button>
+        </header>
+
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-12 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div>
+                    <h2 class="text-3xl font-black mb-1 text-white">Trade Settlement</h2>
+                    <p class="text-slate-500 text-sm">Escrow Reference: <span id="displayTradeID" class="text-blue-500 font-mono">Loading...</span></p>
+                </div>
+                <div id="statusBadge" class="px-4 py-2 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-black uppercase tracking-widest border border-orange-500/20">
+                    Pending Payment
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="glass-panel p-8 rounded-[2.5rem] border-blue-500/20 bg-blue-600/5">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400"><i data-lucide="wallet" class="w-6"></i></div>
+                            <div>
+                                <h3 class="font-bold text-white">Pay with Node Wallet</h3>
+                                <p class="text-[10px] text-slate-500 uppercase font-black">Instant Authorization</p>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Available USD Balance</p>
+                            <h4 class="text-2xl font-black text-white" id="walletBalanceDisplay">$0.00</h4>
+                        </div>
+                        <button onclick="payWithWallet()" id="walletPayBtn" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm shadow-xl transition-all active:scale-95">Complete Instant Payment</button>
+                    </div>
+
+                    <div class="glass-panel p-8 rounded-[2.5rem] border-white/5">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400"><i data-lucide="landmark" class="w-6"></i></div>
+                            <div>
+                                <h3 class="font-bold text-white">External Settlement</h3>
+                                <p class="text-[10px] text-slate-500 uppercase font-black">Manual Bank Transfer</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4" id="instructionContent">
+                            <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
+                                <p class="text-[9px] text-slate-600 font-black uppercase mb-1">Transfer Exactly</p>
+                                <h4 class="text-3xl font-black text-white" id="displayAmount">$0.00 <span class="text-sm text-slate-500">USD</span></h4>
+                            </div>
+                            <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
+                                <p class="text-[9px] text-slate-600 font-black uppercase mb-1">Settlement Rail</p>
+                                <h4 class="text-xl font-bold text-white" id="displayPaymentMethod">Global Bank Transfer / SWIFT</h4>
+                            </div>
+                        </div>
+                        <button onclick="markAsPaid()" id="paidBtn" class="w-full py-4 mt-6 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-sm transition-all border border-white/10">I Have Paid The Merchant Manually</button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="glass-panel p-8 rounded-[2.5rem]">
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Trade Summary</h4>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">Asset</span><span class="text-sm font-bold text-white" id="summaryAsset">---</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">Allocation</span><span class="text-sm font-bold text-blue-400" id="summaryCrypto">0.00</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">Merchant</span><span class="text-sm font-bold text-white" id="summaryMerchant">---</span></div>
+                            <div class="h-[1px] bg-white/5 my-2"></div>
+                            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">Total USD</span><span class="text-lg font-black text-white" id="summaryTotal">$0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyaqvKDKq21WBqCvtGO2APfxorT1VRwRIyBNybB5fYfqHH_CZ42jpEjqEiNZOCI3Kk/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const tradeId = urlParams.get('id');
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        async function loadTradeDetails() {
+            if (!tradeId) { showToast("No Trade ID found", "error"); return; }
+            document.getElementById('displayTradeID').innerText = tradeId;
+            
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'get_trade_details', tradeId: tradeId })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const trade = data.trade;
+                    document.getElementById('displayAmount').innerHTML = `$${parseFloat(trade.amount).toLocaleString()} <span class="text-sm text-slate-500">USD</span>`;
+                    document.getElementById('summaryAsset').innerText = trade.asset;
+                    document.getElementById('summaryCrypto').innerText = `${trade.crypto} ${trade.asset}`;
+                    document.getElementById('summaryMerchant').innerText = trade.merchant;
+                    document.getElementById('summaryTotal').innerText = `$${parseFloat(trade.amount).toLocaleString()}`;
+                    
+                    if (trade.status === "PAID") {
+                        handlePaidState();
+                    } else if (trade.status === "COMPLETED") {
+                        handleCompletedState();
+                    }
+                }
+
+                const balRes = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'get_user_data', token: localStorage.getItem('prime_session') })
+                });
+                const balData = await balRes.json();
+                if (balData.success) {
+                    document.getElementById('walletBalanceDisplay').innerText = `$${parseFloat(balData.balances.USDT || 0).toLocaleString()}`;
+                }
+
+            } catch (e) { showToast("Sync Error", "error"); }
+        }
+
+        function handlePaidState() {
+            document.getElementById('statusBadge').className = "px-4 py-2 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase border border-green-500/20";
+            document.getElementById('statusBadge').innerText = "Settlement Pending";
+            const btns = ['paidBtn', 'walletPayBtn'];
+            btns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = "Processing Trade";
+                    btn.className = "w-full py-4 bg-white/5 text-slate-500 rounded-2xl font-black text-sm cursor-not-allowed";
+                }
+            });
+        }
+
+        function handleCompletedState() {
+            document.getElementById('statusBadge').className = "px-4 py-2 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase border border-blue-500/20";
+            document.getElementById('statusBadge').innerText = "Trade Completed";
+            const btns = ['paidBtn', 'walletPayBtn'];
+            btns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = "Assets Released";
+                    btn.className = "w-full py-4 bg-blue-600/20 text-blue-400 rounded-2xl font-black text-sm cursor-default";
+                }
+            });
+        }
+
+        async function payWithWallet() {
+            const btn = document.getElementById('walletPayBtn');
+            btn.innerText = "Authorizing Balance...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ 
+                        action: 'pay_from_wallet', 
+                        tradeId: tradeId,
+                        token: localStorage.getItem('prime_session')
+                    })
+                });
+                const result = await response.json();
+                if (result.success) { 
+                    showToast("Instant Payment Successful", "success"); 
+                    handlePaidState();
+                    // Optional: Trigger release if internal payment is auto-verified
+                } else {
+                    showToast(result.message || "Insufficient balance", "error");
+                    btn.disabled = false;
+                    btn.innerText = "Complete Instant Payment";
+                }
+            } catch (e) { showToast("Wallet Node Error", "error"); btn.disabled = false; }
+        }
+
+        async function markAsPaid() {
+            const btn = document.getElementById('paidBtn');
+            btn.innerText = "Reporting...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'update_trade_status', tradeId: tradeId, status: 'PAID' })
+                });
+                const result = await response.json();
+                if (result.success) { 
+                    showToast("Payment Reported. Awaiting Verification.", "success"); 
+                    loadTradeDetails(); 
+                }
+            } catch (e) { showToast("Sync Error", "error"); btn.disabled = false; }
+        }
+
+        function showToast(m, t) {
+            const c = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast glass-panel p-5 rounded-2xl flex items-center gap-4 border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
+            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-5"></i><span class="text-sm font-bold text-white">${m}</span>`;
+            c.appendChild(toast); lucide.createIcons(); setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        window.onload = () => {
+            const name = localStorage.getItem('user_name');
+            if(!name) window.location.href = 'index.html';
+            document.getElementById('userNameDisplay').innerText = name;
+            document.getElementById('userAvatar').innerText = name[0].toUpperCase();
+            loadTradeDetails();
+        };
+    </script>
+</body>
+</html>
