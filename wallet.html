@@ -16,7 +16,6 @@
         .nav-link:hover, .nav-link.active { background: rgba(37, 99, 235, 0.1); color: #3b82f6; }
         .content-area { height: 100vh; overflow-y: auto; width: 100%; transition: padding 0.3s ease; }
         
-        /* High-Fidelity Responsive Grid */
         .wallet-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
@@ -50,7 +49,7 @@
         <div class="absolute inset-0" onclick="closeDeposit()"></div>
         <div class="glass-panel w-full max-w-[450px] p-8 rounded-[2.5rem] relative z-10 modal-content border-blue-500/20">
             <div id="depositStep1">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-center mb-6 text-left">
                     <h3 class="text-2xl font-black text-white uppercase italic">Fund Node</h3>
                     <button onclick="closeDeposit()" class="text-slate-500 hover:text-white transition"><i data-lucide="x" class="w-5"></i></button>
                 </div>
@@ -108,6 +107,13 @@
             </div>
             <div class="space-y-6 text-left">
                 <div class="bg-black/40 border border-white/5 p-5 rounded-2xl">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Select Asset</label>
+                    <select id="withdrawAsset" class="bg-transparent text-sm font-bold w-full outline-none text-white">
+                        <option value="USDT">USDT (Institutional)</option>
+                        <option value="BTC">Bitcoin (Verified)</option>
+                    </select>
+                </div>
+                <div class="bg-black/40 border border-white/5 p-5 rounded-2xl">
                     <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Amount (USD)</label>
                     <input id="withdrawAmount" type="number" class="bg-transparent text-xl font-black w-full outline-none text-white" placeholder="0.00">
                     <p class="text-[9px] text-blue-400 mt-2 font-black uppercase tracking-widest" id="availableLabel">Checking balance...</p>
@@ -116,7 +122,7 @@
                     <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Destination Address</label>
                     <input id="withdrawAddress" type="text" class="bg-transparent text-xs font-mono w-full outline-none text-white" placeholder="Paste Crypto Address">
                 </div>
-                <button onclick="processWithdraw()" id="withdrawBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black text-sm uppercase shadow-lg hover:bg-red-500 transition">Submit Request</button>
+                <button onclick="withdrawFunds()" id="withdrawBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black text-sm uppercase shadow-lg hover:bg-red-500 transition">Submit Request</button>
             </div>
         </div>
     </div>
@@ -124,7 +130,7 @@
     <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6">
         <div class="flex items-center gap-3 mb-10 px-2">
             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
-            <span class="font-extrabold text-xl tracking-tighter text-white uppercase tracking-tighter">primeP2P</span>
+            <span class="font-extrabold text-xl tracking-tighter text-white uppercase italic">primeP2P</span>
         </div>
         <nav class="space-y-2 flex-1">
             <a href="dashboard.html" class="nav-link"><i data-lucide="layout-grid" class="w-5"></i> Portfolio</a>
@@ -204,10 +210,13 @@
         
         function openDeposit() { document.getElementById('depositModal').classList.remove('hidden-modal'); }
         function closeDeposit() { if (observerInterval) clearInterval(observerInterval); document.getElementById('depositModal').classList.add('hidden-modal'); resetDepositUI(); }
-        function openWithdraw() { document.getElementById('availableLabel').innerText = `Available: $${currentBalance.toLocaleString()}`; document.getElementById('withdrawModal').classList.remove('hidden-modal'); }
+        
+        function openWithdraw() { 
+            document.getElementById('availableLabel').innerText = `Available: $${currentBalance.toLocaleString()}`; 
+            document.getElementById('withdrawModal').classList.remove('hidden-modal'); 
+        }
         function closeWithdraw() { document.getElementById('withdrawModal').classList.add('hidden-modal'); }
 
-        // COPY FUNCTIONALITY
         function copyDepositAddr() {
             const addr = document.getElementById('displayPayAddress').innerText;
             navigator.clipboard.writeText(addr);
@@ -236,22 +245,37 @@
             } catch (e) { showToast("Network interruption", "error"); resetDepositUI(); }
         }
 
-        async function processWithdraw() {
-            const amt = document.getElementById('withdrawAmount').value;
-            const addr = document.getElementById('withdrawAddress').value;
+        async function withdrawFunds() {
+            const btn = document.getElementById('withdrawBtn');
+            const amount = document.getElementById('withdrawAmount').value;
+            const address = document.getElementById('withdrawAddress').value;
             const asset = document.getElementById('withdrawAsset').value;
             const email = localStorage.getItem('user_email');
-            if (!amt || amt <= 0 || !addr) return showToast("Complete all node fields", "error");
-            if (parseFloat(amt) > currentBalance) return showToast("Insufficient node balance", "error");
-            
-            const btn = document.getElementById('withdrawBtn');
+
+            if(!amount || !address) return showToast("Fill all required fields", "error");
+            if(parseFloat(amount) > currentBalance) return showToast("Insufficient balance", "error");
+
             btn.innerText = "Transmitting..."; btn.disabled = true;
-            
+
             try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'create_trade', userEmail: email, merchant: "WITHDRAWAL", asset: asset, amount: amt, cryptoAmount: addr, status: "PENDING_APPROVAL" }) });
-                const result = await res.json();
-                if (result.success) { showToast("Withdrawal Request Logged", "success"); closeWithdraw(); loadWalletData(); }
-            } catch (e) { showToast("Gateway offline", "error"); }
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'submit_withdrawal', 
+                        email: email, 
+                        amount: amount, 
+                        address: address, 
+                        asset: asset 
+                    })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast("Withdrawal Request Logged", "success");
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    showToast(data.message, "error");
+                }
+            } catch (e) { showToast("Protocol Interference", "error"); }
             btn.innerText = "Submit Request"; btn.disabled = false;
         }
 
@@ -278,7 +302,10 @@
             try {
                 const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'get_user_data', token: token }) });
                 const data = await response.json();
-                if (data.success) { currentBalance = parseFloat(data.balances.USDT || 0); renderAssets(data.balances); }
+                if (data.success) { 
+                    currentBalance = parseFloat(data.balances.USDT || 0); 
+                    renderAssets(data.balances); 
+                }
                 const txRes = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'get_all_trades' }) });
                 const txData = await txRes.json();
                 if (txData.success) { renderHistory(txData.trades.filter(t => t.userEmail === email).reverse().slice(0, 6)); }
@@ -303,7 +330,7 @@
             const container = document.getElementById('txHistoryContainer');
             if (txs.length === 0) { container.innerHTML = `<div class="p-6 text-center text-slate-600 text-[10px] font-bold uppercase italic tracking-widest">No recent node activity</div>`; return; }
             container.innerHTML = txs.map(t => {
-                const isComplete = t.status === 'COMPLETED' || t.status === 'FINISHED';
+                const isComplete = t.status === 'COMPLETED' || t.status === 'FINISHED' || t.status === 'STAKED';
                 const statusColor = isComplete ? 'text-green-500' : (t.status.includes('PENDING') ? 'text-orange-500' : 'text-red-500');
                 return `
                 <div class="p-4 bg-black/40 rounded-2xl border border-white/5 flex items-center justify-between transition-all hover:bg-white/5">
@@ -338,6 +365,3 @@
     </script>
 </body>
 </html>
-
-
-
