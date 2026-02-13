@@ -64,6 +64,12 @@
                     </div>
                     <input type="hidden" id="mkBase64">
                 </div>
+                
+                <div class="col-span-2 space-y-1">
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Unique Settlement Address (Merchant Wallet)</label>
+                    <input id="mkUniqueAddr" type="text" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-[10px] font-mono text-blue-400 outline-none" placeholder="Paste TRC-20 / BTC address">
+                </div>
+
                 <div class="space-y-1">
                     <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Asset</label>
                     <select id="mkAsset" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none">
@@ -75,6 +81,11 @@
                     <select id="mkType" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none">
                         <option value="buy">BUY</option><option value="sell">SELL</option>
                     </select>
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Initial Rating</label>
+                    <input id="mkRating" type="number" step="0.1" max="5" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="5.0">
                 </div>
                 <div class="space-y-1"><label class="text-[9px] font-black text-slate-500 uppercase ml-2">Rate (USD)</label><input id="mkPrice" type="number" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none"></div>
                 <div class="space-y-1"><label class="text-[9px] font-black text-slate-500 uppercase ml-2">Rails</label><input id="mkPayment" type="text" class="w-full bg-black/40 border border-white/5 p-3.5 rounded-xl text-sm text-white outline-none" placeholder="M-PESA"></div>
@@ -104,27 +115,20 @@
                         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway Balance</p>
                         <h3 class="text-3xl font-black text-white" id="gatewayBalance">~ $0.00</h3>
                     </div>
-                    <div class="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400">
-                        <i data-lucide="wallet"></i>
-                    </div>
+                    <div class="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400"><i data-lucide="wallet"></i></div>
                 </div>
                 <div class="space-y-4">
                     <div class="flex justify-between text-[10px] font-bold"><span class="text-slate-500">Auto-Payout</span><span class="text-green-500 uppercase">Active</span></div>
-                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-blue-600 h-full w-[10.17%]" style="width: 10.17%;"></div>
-                    </div>
+                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full w-[10.17%]"></div></div>
                     <p class="text-[9px] text-slate-500 font-medium italic">Settling directly to TRC-20 Node</p>
                 </div>
             </div>
-
             <div class="glass-panel p-8 rounded-[2.5rem] border-white/5 col-span-2 text-left">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-[10px] font-black uppercase text-white tracking-widest">Live Gateway Settlement Flow</h3>
                     <span class="text-[9px] font-bold text-blue-400 uppercase animate-pulse">REST Sync Active</span>
                 </div>
-                <div id="payoutHistory" class="space-y-3 max-h-[160px] overflow-y-auto pr-2 mobile-nav text-xs text-slate-500 italic">
-                    Polling secure gateway signals...
-                </div>
+                <div id="payoutHistory" class="space-y-3 max-h-[160px] overflow-y-auto pr-2 mobile-nav text-xs text-slate-500 italic">Polling gateway signals...</div>
             </div>
         </div>
 
@@ -175,7 +179,7 @@
                     renderUsers(data.users); 
                     renderMarket(data.market);
                     renderSupport(data.support); 
-                    if (data.gateway) renderGatewayData(data.gateway); //
+                    if (data.gateway) renderGatewayData(data.gateway);
                     if (logData.success) {
                         renderKYCQueue(data.users, logData.logs);
                         renderLogs(logData.logs);
@@ -191,7 +195,7 @@
             }
             const historyContainer = document.getElementById('payoutHistory');
             if (!gateway.history || gateway.history.length === 0) {
-                historyContainer.innerHTML = `<p class="text-xs text-slate-500 italic">No recent transactions.</p>`;
+                historyContainer.innerHTML = `<p class="text-xs text-slate-500 italic">No recent flow.</p>`;
                 return;
             }
             historyContainer.innerHTML = gateway.history.map(p => `
@@ -205,35 +209,18 @@
             lucide.createIcons();
         }
 
-        function renderSupport(tickets) {
-            const container = document.getElementById('supportQueue');
-            if (!tickets || tickets.length === 0) {
-                container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm">Inbox Clear. No active support signals.</div>`;
-                return;
-            }
-            container.innerHTML = tickets.map(t => `
-                <div class="glass-panel p-6 rounded-[2rem] border-white/5 flex flex-col md:row justify-between gap-6 text-left hover:bg-white/[0.02] transition">
-                    <div class="flex-1 space-y-2">
-                        <div class="flex items-center gap-3"><span class="px-2 py-0.5 rounded bg-blue-600/10 text-blue-400 text-[8px] font-black uppercase">${t.subject}</span><span class="text-[8px] text-slate-600 font-bold">${new Date(t.timestamp).toLocaleString()}</span></div>
-                        <h4 class="text-sm font-bold text-white">${t.email}</h4><p class="text-xs text-slate-400 leading-relaxed">${t.message}</p>
-                    </div>
-                    <div class="flex items-center gap-3"><button onclick="showToast('Signal archived', 'success')" class="px-6 py-2.5 bg-green-600 text-white rounded-xl font-black text-[9px] uppercase active:scale-95 transition">Resolve</button><button onclick="window.location.href='mailto:${t.email}'" class="p-2.5 glass-panel rounded-xl text-blue-400 hover:text-white transition"><i data-lucide="mail" class="w-4 h-4"></i></button></div>
-                </div>`).join('');
-            lucide.createIcons();
-        }
-
         function renderTrades(trades, logs) {
             const container = document.getElementById('adminLedger');
             const pending = trades.filter(t => t.status === "PAID" && t.merchant !== "WITHDRAWAL");
-            if (pending.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full">Clear Trade Queue.</div>`; return; }
+            if (pending.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full uppercase font-black tracking-widest">Clear Queue.</div>`; return; }
             container.innerHTML = pending.map(t => {
                 const proofLog = logs.find(l => l[3].includes(t.tradeId) && l[2] === "PROOF_UPLOADED");
                 const proofUrl = proofLog ? proofLog[3].split('|')[1] : "";
                 return `<div class="glass-panel p-5 rounded-[1.5rem] border-white/5 space-y-3 text-left">
-                    <div class="flex justify-between items-start"><div><p class="text-[7px] font-black text-blue-500 uppercase tracking-widest">${t.tradeId}</p><h4 class="text-[10px] font-bold text-white truncate w-32">${t.userEmail}</h4></div><span class="px-2 py-0.5 rounded bg-orange-500/10 text-orange-500 text-[7px] font-black uppercase">PAID</span></div>
+                    <div class="flex justify-between items-start"><div><p class="text-[7px] font-black text-blue-500 uppercase">${t.tradeId}</p><h4 class="text-[10px] font-bold text-white truncate w-32">${t.userEmail}</h4></div><span class="px-2 py-0.5 rounded bg-orange-500/10 text-orange-500 text-[7px] font-black">PAID</span></div>
                     <div class="bg-black/40 p-3 rounded-xl space-y-1"><div class="flex justify-between text-[10px] font-black text-white"><span>Amt</span><span>$${t.amount}</span></div><div class="flex justify-between text-[9px] font-bold text-green-400 border-t border-white/5 pt-1.5"><span>Rel</span><span>${t.crypto} ${t.asset}</span></div></div>
-                    <div class="aspect-video bg-black/60 rounded-lg border border-white/5 overflow-hidden">${proofUrl ? `<iframe src="${proofUrl}" class="w-full h-full border-none"></iframe>` : `<div class="w-full h-full flex items-center justify-center text-slate-700 text-[7px] font-bold uppercase italic">Missing Upload</div>`}</div>
-                    <div class="flex gap-2 mt-2"><button onclick="releaseEscrow('${t.tradeId}')" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-black text-[9px] uppercase active:scale-95 transition">Release</button><button onclick="rejectTrade('${t.tradeId}')" class="flex-1 bg-red-600/10 text-red-500 py-2 rounded-lg font-black text-[9px] uppercase border border-red-500/20 active:scale-95 transition">Reject</button></div>
+                    <div class="aspect-video bg-black/60 rounded-lg border border-white/5 overflow-hidden">${proofUrl ? `<iframe src="${proofUrl}" class="w-full h-full border-none"></iframe>` : `<div class="w-full h-full flex items-center justify-center text-slate-700 text-[7px] font-black italic">NO PROOF</div>`}</div>
+                    <div class="flex gap-2 mt-2"><button onclick="releaseEscrow('${t.tradeId}')" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-black text-[9px] uppercase active:scale-95 transition">Release</button><button onclick="rejectTrade('${t.tradeId}')" class="flex-1 bg-red-600/10 text-red-500 py-2 rounded-lg font-black text-[9px] uppercase active:scale-95 transition">Reject</button></div>
                 </div>`;
             }).join('');
         }
@@ -241,17 +228,17 @@
         function renderWithdrawals(trades) {
             const container = document.getElementById('withdrawalQueue');
             const requests = trades.filter(t => t.merchant === "WITHDRAWAL" && t.status === "PENDING_APPROVAL");
-            if (requests.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full">No Pending Withdrawals.</div>`; return; }
+            if (requests.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full font-black uppercase tracking-widest">No Pendings.</div>`; return; }
             container.innerHTML = requests.map(r => `
                 <div class="glass-panel p-4 rounded-xl border-red-500/10 text-left">
                     <div class="flex justify-between items-start mb-2"><div><p class="text-[7px] font-black text-red-500 uppercase">${r.tradeId}</p><h4 class="text-[10px] font-bold text-white truncate w-32">${r.userEmail}</h4></div></div>
                     <div class="bg-black/40 p-3 rounded-lg space-y-1">
                         <div class="flex justify-between text-[10px] font-black text-white"><span>Amt</span><span class="text-red-400">$${r.amount}</span></div>
-                        <div class="flex flex-col gap-0.5 border-t border-white/5 pt-1"><span class="text-[7px] text-slate-500 uppercase font-black">To: ${r.asset}</span><span class="text-[8px] font-mono text-blue-400 break-all leading-tight">${r.crypto}</span></div>
+                        <div class="flex flex-col gap-0.5 border-t border-white/5 pt-1"><span class="text-[7px] text-slate-500 font-black">TO: ${r.asset}</span><span class="text-[8px] font-mono text-blue-400 break-all">${r.crypto}</span></div>
                     </div>
                     <div class="flex gap-2 mt-2">
-                        <button onclick="approveWithdrawal('${r.tradeId}')" class="flex-1 py-2 bg-green-600 text-white rounded-lg font-black text-[8px] uppercase active:scale-95">Approve</button>
-                        <button onclick="rejectWithdrawal('${r.tradeId}')" class="flex-1 py-2 bg-red-600/10 text-red-500 border border-red-500/20 rounded-lg font-black text-[8px] uppercase active:scale-95">Reject</button>
+                        <button onclick="approveWithdrawal('${r.tradeId}')" class="flex-1 py-2 bg-green-600 text-white rounded-lg font-black text-[8px] uppercase">Approve</button>
+                        <button onclick="rejectWithdrawal('${r.tradeId}')" class="flex-1 py-2 bg-red-600/10 text-red-500 border border-red-500/20 rounded-lg font-black text-[8px] uppercase">Reject</button>
                     </div>
                 </div>`).join('');
         }
@@ -259,16 +246,37 @@
         function renderKYCQueue(users, logs) {
             const container = document.getElementById('kycReviewQueue');
             const pendingUsers = users.filter(u => u.kyc === 1.5);
-            if (pendingUsers.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 italic text-sm col-span-full uppercase font-black">No pending Identity Nodes.</div>`; return; }
+            if (pendingUsers.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 text-sm col-span-full font-black uppercase">Identity Queue Clear.</div>`; return; }
             container.innerHTML = pendingUsers.map(u => {
                 const kycLog = logs.find(l => l[1] === u.email && l[2] === "KYC_PENDING");
                 const meta = kycLog ? JSON.parse(kycLog[3]) : { docType: "Unknown", front: "", selfie: "" };
-                return `<div class="glass-panel p-5 rounded-[1.5rem] border-white/5 space-y-4 text-left"><div class="flex justify-between items-start"><div><h4 class="text-xs font-bold text-white">${u.name}</h4><p class="text-[8px] text-blue-400 font-black uppercase tracking-widest">${meta.docType}</p></div><div class="flex gap-1.5"><button onclick="processKYC('${u.email}', 'APPROVE')" class="bg-green-600 text-white px-2.5 py-1 rounded-lg text-[8px] font-black uppercase">Approve</button><button onclick="processKYC('${u.email}', 'REJECT')" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-[8px] font-black uppercase">Reject</button></div></div><div class="grid grid-cols-2 gap-2"><div class="aspect-video bg-black/40 rounded-lg border border-white/5 overflow-hidden"><iframe src="${meta.front}" class="w-full h-full border-none"></iframe></div><div class="aspect-video bg-black/40 rounded-lg border border-white/5 overflow-hidden"><iframe src="${meta.selfie}" class="w-full h-full border-none"></iframe></div></div></div>`;
+                return `<div class="glass-panel p-5 rounded-[1.5rem] border-white/5 space-y-4 text-left"><div class="flex justify-between items-start"><div><h4 class="text-xs font-bold text-white">${u.name}</h4><p class="text-[8px] text-blue-400 font-black uppercase">${meta.docType}</p></div><div class="flex gap-1.5"><button onclick="processKYC('${u.email}', 'APPROVE')" class="bg-green-600 text-white px-2.5 py-1 rounded-lg text-[8px] font-black uppercase">Approve</button><button onclick="processKYC('${u.email}', 'REJECT')" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-[8px] font-black uppercase">Reject</button></div></div><div class="grid grid-cols-2 gap-2"><div class="aspect-video bg-black/40 rounded-lg border border-white/5 overflow-hidden"><iframe src="${meta.front}" class="w-full h-full border-none"></iframe></div><div class="aspect-video bg-black/40 rounded-lg border border-white/5 overflow-hidden"><iframe src="${meta.selfie}" class="w-full h-full border-none"></iframe></div></div></div>`;
             }).join('');
         }
 
+        // FIXED: IDENTITY NODE SIGNAL
+        async function processKYC(email, decision) {
+            openConfirmModal(`${decision} Identity Node`, `Confirm validation as Level ${decision === 'APPROVE' ? '2' : '1'}?`, async () => {
+                try {
+                    const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_verify_user', email, decision }) });
+                    const result = await res.json();
+                    if(result.success) { showToast(result.message, "success"); loadAdminData(); }
+                } catch (e) { showToast("Signal Failure", "error"); }
+            }, decision === 'REJECT' ? 'danger' : 'info');
+        }
+
+        async function approveWithdrawal(id) {
+            openConfirmModal("Final Settlement", "Confirm transfer sent? This marks trade as COMPLETED.", async () => {
+                try {
+                    const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_approve_withdrawal', tradeId: id }) });
+                    const result = await res.json();
+                    if(result.success) { showToast(result.message, "success"); loadAdminData(); }
+                } catch (e) { showToast("Signal Failure", "error"); }
+            });
+        }
+
         async function rejectWithdrawal(id) {
-            openConfirmModal("Reject & Refund", "Invalid address or node error? This will return the funds to the user balance immediately.", async () => {
+            openConfirmModal("Reject & Refund", "Deduct occurred at request. Rejecting will return funds to user balance.", async () => {
                 try {
                     const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'reject_withdrawal_request', tradeId: id }) });
                     const result = await res.json();
@@ -277,18 +285,8 @@
             }, 'danger');
         }
 
-        async function approveWithdrawal(id) {
-            openConfirmModal("Settlement Approval", "Confirm manual transfer sent? Trade will be marked COMPLETED.", async () => {
-                try {
-                    const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_approve_withdrawal', tradeId: id }) });
-                    const result = await res.json();
-                    if(result.success) { showToast(result.message, "success"); loadAdminData(); }
-                } catch (e) { showToast("Signal Failure", "error"); }
-            }, 'info');
-        }
-
         async function releaseEscrow(id) {
-            openConfirmModal("Authorize Release", "Synchronize global ledger assets?", async () => {
+            openConfirmModal("Authorize Release", "Release cryptographic assets to global ledger?", async () => {
                 try {
                     const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_release_escrow', tradeId: id }) });
                     const result = await res.json();
@@ -298,7 +296,7 @@
         }
 
         async function rejectTrade(id) {
-            openConfirmModal("Reject Transaction", "Cancel this session?", async () => {
+            openConfirmModal("Reject Session", "Cancel this trade session?", async () => {
                 try {
                     const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'update_trade_status', tradeId: id, status: 'REJECTED' }) });
                     const result = await res.json();
@@ -314,7 +312,7 @@
 
         function renderMarket(market) {
             const grid = document.getElementById('marketGrid');
-            grid.innerHTML = market.map(m => `<div class="glass-panel p-3 rounded-xl border-white/5 relative text-left"><button onclick="deleteMarket('${m.merchant}', '${m.asset}')" class="absolute top-2 right-2 text-red-500/40"><i data-lucide="trash-2" class="w-3"></i></button><p class="text-[6px] font-black text-blue-400 uppercase tracking-widest">${m.type} ${m.asset}</p><h4 class="text-[9px] font-black text-white mt-0.5">${m.merchant}</h4><div class="mt-1 text-[11px] font-black text-green-400">$${m.price}</div></div>`).join('');
+            grid.innerHTML = market.map(m => `<div class="glass-panel p-3 rounded-xl border-white/5 relative text-left"><button onclick="deleteMarket('${m.merchant}', '${m.asset}')" class="absolute top-2 right-2 text-red-500/40"><i data-lucide="trash-2" class="w-3"></i></button><p class="text-[6px] font-black text-blue-400 uppercase tracking-widest">${m.type} ${m.asset}</p><h4 class="text-[9px] font-black text-white mt-0.5">${m.merchant}</h4><div class="mt-1 text-[11px] font-black text-green-400">$${m.price}</div><p class="text-[7px] font-mono text-slate-600 truncate mt-1">${m.address || 'PLATFORM_RAIL'}</p></div>`).join('');
             lucide.createIcons();
         }
 
@@ -323,14 +321,53 @@
             container.innerHTML = logs.map(l => `<div class="glass-panel p-3 rounded-lg border-white/5 flex flex-col gap-0.5 text-left"><div class="flex justify-between items-center"><span class="text-[8px] font-black uppercase text-blue-400">${l[2]}</span><span class="text-[7px] text-slate-600">${new Date(l[0]).toLocaleTimeString()}</span></div><p class="text-[9px] text-white leading-tight uppercase">${l[3]}</p></div>`).join('');
         }
 
-        function handleAdminFileSelect(i) { if (i.files && i.files[0]) { const r = new FileReader(); r.onload = (e) => { document.getElementById('mkBase64').value = e.target.result; document.getElementById('mkFileName').innerText = i.files[0].name; document.getElementById('mkFileName').className += " text-blue-400 font-bold"; }; r.readAsDataURL(i.files[0]); } }
-        async function saveMarketMaker() { const p = { action: 'admin_manage_market', mode: 'add', merchant: document.getElementById('mkName').value, base64Image: document.getElementById('mkBase64').value, asset: document.getElementById('mkAsset').value, type: document.getElementById('mkType').value, price: document.getElementById('mkPrice').value, min: document.getElementById('mkMin').value, max: document.getElementById('mkMax').value, payment: document.getElementById('mkPayment').value }; if(!p.merchant || !p.base64Image) return showToast("Required fields empty", "error"); const b = document.getElementById('saveMkBtn'); b.innerText = "Transforming..."; b.disabled = true; try { const r = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) }); const res = await r.json(); if(res.success) { showToast("Listing Node Added", "success"); closeMarketModal(); loadAdminData(); } } catch (e) { showToast("Sync Error", "error"); } b.innerText = "Deploy Node Listing"; b.disabled = false; }
+        // UPDATED: MARKET SAVE WITH UNIQUE ADDRESS & RATING
+        async function saveMarketMaker() {
+            const p = { 
+                action: 'admin_manage_market', 
+                mode: 'add', 
+                merchant: document.getElementById('mkName').value, 
+                base64Image: document.getElementById('mkBase64').value, 
+                asset: document.getElementById('mkAsset').value, 
+                type: document.getElementById('mkType').value, 
+                price: document.getElementById('mkPrice').value, 
+                min: document.getElementById('mkMin').value, 
+                max: document.getElementById('mkMax').value, 
+                payment: document.getElementById('mkPayment').value,
+                uniqueAddress: document.getElementById('mkUniqueAddr').value,
+                rating: document.getElementById('mkRating').value
+            }; 
+            if(!p.merchant || !p.uniqueAddress) return showToast("Name and Address required", "error"); 
+            const b = document.getElementById('saveMkBtn'); 
+            b.innerText = "Transforming..."; b.disabled = true; 
+            try { 
+                const r = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) }); 
+                const res = await r.json(); 
+                if(res.success) { showToast("Listing Node Added", "success"); closeMarketModal(); loadAdminData(); } 
+            } catch (e) { showToast("Sync Error", "error"); } 
+            b.innerText = "Deploy Node Listing"; b.disabled = false; 
+        }
+
+        function renderSupport(tickets) {
+            const container = document.getElementById('supportQueue');
+            if (!tickets || tickets.length === 0) { container.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center text-slate-500 text-sm">Inbox Clear.</div>`; return; }
+            container.innerHTML = tickets.map(t => `
+                <div class="glass-panel p-6 rounded-[2rem] border-white/5 flex flex-col md:row justify-between gap-6 text-left hover:bg-white/[0.02] transition">
+                    <div class="flex-1 space-y-2">
+                        <div class="flex items-center gap-3"><span class="px-2 py-0.5 rounded bg-blue-600/10 text-blue-400 text-[8px] font-black uppercase">${t.subject}</span></div>
+                        <h4 class="text-sm font-bold text-white">${t.email}</h4><p class="text-xs text-slate-400 leading-relaxed">${t.message}</p>
+                    </div>
+                    <div class="flex items-center gap-3"><button onclick="showToast('Signal archived', 'success')" class="px-6 py-2.5 bg-green-600 text-white rounded-xl font-black text-[9px] uppercase">Resolve</button></div>
+                </div>`).join('');
+            lucide.createIcons();
+        }
+
         async function toggleUserStatus(e, s) { const n = s === 'ACTIVE' ? 'BANNED' : 'ACTIVE'; openConfirmModal(`Node ${n}`, `Modify access for ${e}?`, async () => { const r = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_toggle_user', email: e, status: n }) }); const res = await r.json(); if(res.success) { showToast(res.message, "success"); loadAdminData(); } }, n === 'BANNED' ? 'danger' : 'info'); }
         async function deleteMarket(m, a) { openConfirmModal("Delete", `Remove ${a} for ${m}?`, async () => { const r = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_manage_market', mode: 'delete', merchant: m, asset: a }) }); const res = await r.json(); if(res.success) { showToast("Pair Removed", "success"); loadAdminData(); } }, 'danger'); }
         async function sendGlobalBroadcast() { const msg = document.getElementById('broadcastMsg').value; if(!msg) return showToast("Empty signal", "error"); try { const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_send_broadcast', message: msg }) }); const r = await res.json(); if(r.success) showToast("Signal Dispatched", "success"); } catch (e) { showToast("Error", "error"); } }
-
         function switchTab(id) { document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active', 'text-blue-400'); b.classList.add('text-slate-500'); }); document.getElementById(`tab-${id}`).classList.remove('hidden'); document.getElementById(`tabBtn-${id}`).classList.add('active', 'text-blue-400'); }
         function showToast(m, t) { const c = document.getElementById('toastContainer'); const toast = document.createElement('div'); toast.className = `toast glass-panel p-3 rounded-xl border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`; toast.innerHTML = `<span class="text-[9px] font-black uppercase text-white">${m}</span>`; c.appendChild(toast); setTimeout(() => toast.classList.add('show'), 100); setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000); }
+        function handleAdminFileSelect(i) { if (i.files && i.files[0]) { const r = new FileReader(); r.onload = (e) => { document.getElementById('mkBase64').value = e.target.result; document.getElementById('mkFileName').innerText = i.files[0].name; document.getElementById('mkFileName').className += " text-blue-400 font-bold"; }; r.readAsDataURL(i.files[0]); } }
 
         window.onload = loadAdminData;
     </script>
