@@ -16,6 +16,13 @@
         .content-area { height: 100vh; overflow-y: auto; width: 100%; transition: padding 0.3s ease; }
         .yield-badge { background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(21, 128, 61, 0.1) 100%); border: 1px solid rgba(34, 197, 94, 0.2); }
         
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+            width: 100%;
+        }
+
         #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 1000; pointer-events: none; }
         .toast { pointer-events: auto; transform: translateX(150%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
@@ -37,7 +44,7 @@
     <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6">
         <div class="flex items-center gap-3 mb-10 px-2">
             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
-            <span class="font-extrabold text-xl tracking-tighter text-white">primeP2P</span>
+            <span class="font-extrabold text-xl tracking-tighter text-white uppercase italic">primeP2P</span>
         </div>
         <nav class="space-y-2 flex-1">
             <a href="dashboard.html" class="nav-link"><i data-lucide="layout-grid" class="w-5"></i> Portfolio</a>
@@ -61,37 +68,42 @@
         <header class="lg:hidden fixed top-0 left-0 w-full z-[140] bg-[#05070a]/80 backdrop-blur-xl border-b border-white/5 p-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
-                <span class="font-extrabold text-lg tracking-tighter text-white">primeP2P</span>
+                <span class="font-extrabold text-lg tracking-tighter text-white uppercase italic">primeP2P</span>
             </div>
             <button onclick="toggleSidebar()" class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="menu" class="w-5"></i></button>
         </header>
 
         <div class="max-w-6xl mx-auto">
-            <div class="mb-12">
-                <h2 class="text-3xl font-black mb-1 text-white text-center sm:text-left">Yield Nodes</h2>
-                <p class="text-slate-500 text-sm text-center sm:text-left">Generate passive returns by providing liquidity to the primeP2P network.</p>
+            <div class="mb-12 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-black mb-1 text-white uppercase italic tracking-tighter">Yield Nodes</h2>
+                    <p class="text-slate-500 text-sm">Generate passive returns by providing global institutional liquidity.</p>
+                </div>
+                <div class="glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-[10px] font-black text-green-500 uppercase tracking-widest">Live Flow Tracking</span>
+                </div>
             </div>
 
             <div class="grid lg:grid-cols-3 gap-8 mb-12">
                 <div class="lg:col-span-2 space-y-8">
                     <div class="grid sm:grid-cols-2 gap-6">
                         <div class="glass-panel p-8 rounded-[2.5rem] border-green-500/10 relative overflow-hidden group">
-                            <div class="absolute top-[-10px] right-[-10px] text-green-500/5 group-hover:text-green-500/10 transition"><i data-lucide="trending-up" class="w-32 h-32"></i></div>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Total Earned</p>
-                            <h3 class="text-4xl font-black text-white">$0.00 <span class="text-xs font-bold text-green-500 ml-2">+0.00%</span></h3>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Total Earned (Daily Accrued)</p>
+                            <h3 class="text-4xl font-black text-white" id="totalEarnedDisplay">$0.00</h3>
+                            <p class="text-[10px] text-green-500 font-bold mt-2 uppercase">Real-time Yield Stream</p>
                         </div>
                         <div class="glass-panel p-8 rounded-[2.5rem] border-blue-500/10 relative overflow-hidden group">
-                            <div class="absolute top-[-10px] right-[-10px] text-blue-500/5 group-hover:text-blue-500/10 transition"><i data-lucide="lock" class="w-32 h-32"></i></div>
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Actively Staked</p>
-                            <h3 class="text-4xl font-black text-white">$0.00</h3>
+                            <h3 class="text-4xl font-black text-white" id="activeStakedDisplay">$0.00</h3>
+                            <p class="text-[10px] text-blue-500 font-bold mt-2 uppercase">Locked in Liquidity Nodes</p>
                         </div>
                     </div>
 
                     <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i data-lucide="layers" class="text-blue-400"></i> Available Saving Nodes</h3>
-                        <div id="poolContainer" class="grid gap-4">
-                            <div class="p-20 text-center animate-pulse text-slate-600 font-bold uppercase tracking-widest">Syncing Liquidity Pools...</div>
-                        </div>
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3 uppercase italic tracking-tighter"><i data-lucide="layers" class="text-blue-400"></i> Liquidity Nodes</h3>
+                        <div id="poolContainer" class="node-grid">
+                            </div>
                     </div>
                 </div>
 
@@ -108,17 +120,27 @@
                             </div>
                             <div>
                                 <label class="text-[10px] font-black text-slate-500 uppercase block mb-3">Duration</label>
-                                <select id="calcDuration" onchange="updateCalculator()" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-white transition focus:border-blue-500">
+                                <select id="calcDuration" onchange="updateCalculator()" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-white">
                                     <option value="30">30 Days (Flexible)</option>
                                     <option value="90">90 Days (Locked)</option>
                                     <option value="365">1 Year (Institutional)</option>
                                 </select>
                             </div>
-                            <div class="pt-6 border-t border-white/5 space-y-4">
-                                <div class="flex justify-between items-center text-xs font-bold"><span class="text-slate-500">Estimated Yield</span><span class="text-green-500" id="estYieldText">$0.00</span></div>
-                                <div class="flex justify-between items-center text-xs font-bold"><span class="text-slate-500">Total Settlement</span><span class="text-white" id="totalSettlementText">$0.00</span></div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-3">Regional Settlement Rail</label>
+                                <select id="calcRail" onchange="updateCalculator()" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-blue-400">
+                                    <option value="USD">Global USD</option>
+                                    <option value="KES">Kenya (KES)</option>
+                                    <option value="NGN">Nigeria (NGN)</option>
+                                    <option value="GHS">Ghana (GHS)</option>
+                                    <option value="IQD">Iraq (IQD)</option>
+                                </select>
                             </div>
-                            <button onclick="showToast('Calculated rewards authorized', 'success')" class="w-full py-4 bg-white text-black rounded-2xl font-black text-sm hover:bg-blue-400 transition">Start Earning</button>
+                            <div class="pt-6 border-t border-white/5 space-y-4">
+                                <div class="flex justify-between items-center text-xs font-bold"><span class="text-slate-500 uppercase tracking-widest">Yield</span><span class="text-green-500" id="estYieldText">$0.00</span></div>
+                                <div class="flex justify-between items-center text-xs font-bold"><span class="text-slate-500 uppercase tracking-widest">Total Settlement</span><span class="text-white text-lg font-black tracking-tighter" id="totalSettlementText">$0.00</span></div>
+                            </div>
+                            <button onclick="stakeFunds()" id="stakeBtn" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[11px] uppercase hover:bg-blue-400 transition shadow-lg">Initialize Stake</button>
                         </div>
                     </div>
                 </div>
@@ -128,12 +150,15 @@
 
     <script>
         lucide.createIcons();
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyaqvKDKq21WBqCvtGO2APfxorT1VRwRIyBNybB5fYfqHH_CZ42jpEjqEiNZOCI3Kk/exec";
         
         const POOLS = [
             { asset: 'USDT', name: 'Tether Stable Node', apy: 6.5, status: 'FLEXIBLE', color: 'green-500' },
             { asset: 'BTC', name: 'Bitcoin Conviction Node', apy: 3.2, status: 'LOCKED', color: 'orange-500' },
             { asset: 'SOL', name: 'Solana Velocity Node', apy: 8.8, status: 'FLEXIBLE', color: 'blue-500' }
         ];
+
+        const RAIL_RATES = { USD: 1.0, KES: 129.50, NGN: 1545.00, GHS: 16.20, IQD: 1310.00 };
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -143,42 +168,109 @@
         function renderPools() {
             const container = document.getElementById('poolContainer');
             container.innerHTML = POOLS.map(pool => `
-                <div class="glass-panel p-6 rounded-[1.5rem] flex flex-col md:flex-row items-center justify-between gap-6 hover:border-${pool.color}/30 transition-all text-white group">
+                <div class="glass-panel p-6 rounded-[2rem] flex flex-col sm:flex-row items-center justify-between gap-6 hover:border-${pool.color}/30 transition-all text-white group border-white/5">
                     <div class="flex items-center gap-4 flex-1">
-                        <div class="w-12 h-12 bg-${pool.color}/10 rounded-2xl flex items-center justify-center font-black text-${pool.color} group-hover:scale-110 transition">${pool.asset[0]}</div>
+                        <div class="w-12 h-12 bg-${pool.color}/10 rounded-2xl flex items-center justify-center font-black text-${pool.color} uppercase">${pool.asset[0]}</div>
                         <div>
-                            <h4 class="font-bold text-sm">${pool.name}</h4>
+                            <h4 class="font-bold text-sm tracking-tight">${pool.name}</h4>
                             <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">${pool.status} SETTLEMENT</p>
                         </div>
                     </div>
                     <div class="text-center flex-1">
-                        <div class="yield-badge px-4 py-2 rounded-full inline-block">
-                            <span class="text-sm font-black text-green-500">${pool.apy}% APY</span>
+                        <div class="px-4 py-2 rounded-full inline-block yield-badge">
+                            <span class="text-xs font-black text-green-500">${pool.apy}% APY</span>
                         </div>
                     </div>
-                    <div class="flex items-center justify-end gap-6 flex-1">
-                        <button onclick="showToast('Initiating ${pool.asset} Stake...', 'info')" class="w-full md:w-auto px-10 py-3 bg-white/5 border border-white/5 hover:bg-white text-black rounded-xl font-black text-[11px] uppercase transition-all">Stake</button>
+                    <div class="flex items-center justify-end gap-6 flex-1 w-full sm:w-auto">
+                        <button onclick="autoFillCalc('${pool.asset}', ${pool.apy})" class="w-full sm:px-8 py-3 bg-white/5 border border-white/5 hover:bg-blue-600 hover:text-white text-slate-400 rounded-xl font-black text-[10px] uppercase transition-all tracking-widest">Select Node</button>
                     </div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
+        let selectedApy = 0.065; 
+        function autoFillCalc(asset, apy) {
+            selectedApy = apy / 100;
+            updateCalculator();
+            showToast(`${asset} Node Integrated`, "success");
+        }
+
         function updateCalculator() {
             const amount = parseFloat(document.getElementById('calcAmount').value) || 0;
             const days = parseInt(document.getElementById('calcDuration').value);
-            const apy = 0.065; // Default to USDT APY
+            const rail = document.getElementById('calcRail').value;
+            const rate = RAIL_RATES[rail];
             
-            const yieldVal = (amount * apy * (days / 365));
-            document.getElementById('estYieldText').innerText = `$${yieldVal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            document.getElementById('totalSettlementText').innerText = `$${(amount + yieldVal).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            const yieldVal = (amount * selectedApy * (days / 365));
+            const total = amount + yieldVal;
+
+            document.getElementById('estYieldText').innerText = `${rail} ${(yieldVal * rate).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('totalSettlementText').innerText = `${rail} ${(total * rate).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        }
+
+        /**
+         * Track Live Daily Earnings
+         */
+        async function trackLiveFlow() {
+            const email = localStorage.getItem('user_email');
+            try {
+                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'get_all_trades' }) });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const myStakes = data.trades.filter(t => t.userEmail === email && t.status === "STAKED");
+                    let totalAccrued = 0;
+                    let activePrincipal = 0;
+
+                    myStakes.forEach(s => {
+                        const meta = JSON.parse(s.crypto); // APY stored in metadata field
+                        const daysActive = Math.max(1, (new Date() - new Date(s.timestamp)) / (1000 * 60 * 60 * 24));
+                        totalAccrued += (s.amount * meta.apy * (daysActive / 365));
+                        activePrincipal += s.amount;
+                    });
+
+                    document.getElementById('totalEarnedDisplay').innerText = `$${totalAccrued.toFixed(2)}`;
+                    document.getElementById('activeStakedDisplay').innerText = `$${activePrincipal.toFixed(2)}`;
+                }
+            } catch (e) { console.log("Flow tracker offline"); }
+        }
+
+        async function stakeFunds() {
+            const amt = document.getElementById('calcAmount').value;
+            const duration = document.getElementById('calcDuration').value;
+            const token = localStorage.getItem('prime_session');
+            const btn = document.getElementById('stakeBtn');
+            
+            if(!amt || amt <= 0) return showToast("Invalid Amount", "error");
+            
+            btn.innerText = "Encrypting Stake..."; btn.disabled = true;
+
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'initiate_stake', 
+                        token: token, 
+                        amount: amt, 
+                        apy: selectedApy, 
+                        duration: duration 
+                    })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast("Institutional Stake Initialized", "success");
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            } catch (e) { showToast("Signal Break", "error"); }
+            btn.innerText = "Initialize Stake"; btn.disabled = false;
         }
 
         function showToast(m, t) {
             const c = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast glass-panel p-5 rounded-2xl flex items-center gap-4 border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
-            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-5"></i><span class="text-sm font-bold text-white">${m}</span>`;
+            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-5"></i><span class="text-sm font-bold text-white uppercase">${m}</span>`;
             c.appendChild(toast); lucide.createIcons(); setTimeout(() => toast.classList.add('show'), 100);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
@@ -190,6 +282,8 @@
             document.getElementById('userAvatar').innerText = name[0].toUpperCase();
             renderPools();
             updateCalculator();
+            trackLiveFlow();
+            setInterval(trackLiveFlow, 60000); // Live flow every minute
         };
     </script>
 </body>
