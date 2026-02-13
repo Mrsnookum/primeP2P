@@ -8,51 +8,72 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #f8fafc; scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #f8fafc; scroll-behavior: smooth; overflow-x: hidden; }
         .glass-panel { background: rgba(15, 19, 26, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-prime { background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%); transition: all 0.3s ease; }
         .btn-prime:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
-        .hero-title { font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
-        .live-indicator { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 12px #22c55e; }
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .hero-title { font-size: clamp(2.5rem, 8vw, 5.5rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; }
+        .text-gradient { background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* Modal and Toast UI */
-        .modal-overlay { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        /* High-Fidelity Mobile Menu */
+        #mobileMenu { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(-100%); opacity: 0; pointer-events: none; }
+        #mobileMenu.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+        /* Responsive Grid Fix */
+        .market-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+            width: 100%;
+        }
+
+        /* Asset Row Styles */
+        .asset-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.3s; }
+        .asset-row:hover { background: rgba(255,255,255,0.03); }
+
+        .modal-overlay { transition: opacity 0.3s ease, visibility 0.3s ease; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
         .modal-content { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hidden-modal { opacity: 0; visibility: hidden; pointer-events: none; }
         .hidden-modal .modal-content { transform: scale(0.9) translateY(20px); }
 
-        #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 1000; pointer-events: none; }
+        #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 2000; pointer-events: none; }
         .toast { pointer-events: auto; transform: translateX(150%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
+
+        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .live-indicator { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 12px #22c55e; animation: pulse-soft 2s infinite; }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body>
 
     <div id="toastContainer" class="flex flex-col gap-3"></div>
 
-    <div id="authModal" class="fixed inset-0 z-[200] flex items-center justify-center px-6 modal-overlay hidden-modal">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAuth()"></div>
-        <div class="glass-panel w-full max-w-[440px] p-10 rounded-[2.5rem] relative z-10 modal-content">
-            <button onclick="closeAuth()" class="absolute top-8 right-8 text-slate-500 hover:text-white transition">
-                <i data-lucide="x" class="w-6"></i>
-            </button>
-            
+    <div id="mobileMenu" class="fixed inset-0 z-[150] bg-[#05070a] p-8 flex flex-col justify-center gap-8 text-center">
+        <button onclick="toggleMenu()" class="absolute top-8 right-8 text-slate-400"><i data-lucide="x" class="w-10 h-10"></i></button>
+        <a href="#markets" onclick="toggleMenu()" class="text-4xl font-black text-white italic uppercase tracking-tighter">Market Flow</a>
+        <a href="#settlement" onclick="toggleMenu()" class="text-4xl font-black text-white italic uppercase tracking-tighter">Settlement</a>
+        <a href="#features" onclick="toggleMenu()" class="text-4xl font-black text-white italic uppercase tracking-tighter">Compliance</a>
+        <div class="h-[1px] bg-white/5 w-full my-4"></div>
+        <button onclick="openAuth('login'); toggleMenu()" class="w-full py-5 glass-panel rounded-2xl font-bold text-blue-400">Access Node</button>
+        <button onclick="openAuth('register'); toggleMenu()" class="w-full py-5 btn-prime rounded-2xl font-black uppercase">Initialize Node</button>
+    </div>
+
+    <div id="authModal" class="fixed inset-0 z-[300] flex items-center justify-center px-6 modal-overlay hidden-modal">
+        <div class="absolute inset-0" onclick="closeAuth()"></div>
+        <div class="glass-panel w-full max-w-[440px] p-10 rounded-[2.5rem] relative z-10 modal-content border-white/10">
+            <button onclick="closeAuth()" class="absolute top-8 right-8 text-slate-500 hover:text-white transition"><i data-lucide="x" class="w-6"></i></button>
             <div id="loginForm">
-                <h3 class="text-3xl font-black mb-2">Welcome Back</h3>
+                <h3 class="text-3xl font-black mb-2 tracking-tight">Welcome Back</h3>
                 <p class="text-slate-500 text-sm mb-8">Access your global P2P nodes</p>
                 <div class="space-y-4">
                     <input type="email" id="loginEmail" placeholder="Email Address" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 transition text-white">
                     <input type="password" id="loginPass" placeholder="Password" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 transition text-white">
                     <button id="loginBtn" onclick="handleAuth('login')" class="btn-prime w-full py-4 rounded-2xl font-black text-lg shadow-lg">Login to Node</button>
                 </div>
-                <p class="mt-8 text-center text-sm text-slate-500">
-                    New to Prime? <button onclick="toggleAuthMode('register')" class="text-blue-400 font-bold">Create Account</button>
-                </p>
+                <p class="mt-8 text-center text-sm text-slate-500">New to Prime? <button onclick="toggleAuthMode('register')" class="text-blue-400 font-bold">Create Account</button></p>
             </div>
-
             <div id="registerForm" class="hidden">
-                <h3 class="text-3xl font-black mb-2">Initialize Node</h3>
+                <h3 class="text-3xl font-black mb-2 tracking-tight">Initialize Node</h3>
                 <p class="text-slate-500 text-sm mb-8">Start trading with zero-trust escrow</p>
                 <div class="space-y-4">
                     <input type="text" id="regName" placeholder="Full Name" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 transition text-white">
@@ -60,69 +81,96 @@
                     <input type="password" id="regPass" placeholder="Create Password" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 transition text-white">
                     <button id="regBtn" onclick="handleAuth('register')" class="btn-prime w-full py-4 rounded-2xl font-black text-lg shadow-lg">Register Account</button>
                 </div>
-                <p class="mt-8 text-center text-sm text-slate-500">
-                    Already registered? <button onclick="toggleAuthMode('login')" class="text-blue-400 font-bold">Log In</button>
-                </p>
+                <p class="mt-8 text-center text-sm text-slate-500">Already registered? <button onclick="toggleAuthMode('login')" class="text-blue-400 font-bold">Log In</button></p>
             </div>
         </div>
     </div>
 
-    <nav class="fixed top-0 w-full z-[100] bg-[#05070a]/80 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center">
+    <nav class="fixed top-0 w-full z-[100] bg-[#05070a]/60 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 btn-prime rounded-xl flex items-center justify-center">
+            <div class="w-10 h-10 btn-prime rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
                 <i data-lucide="shield-check" class="text-white w-6"></i>
             </div>
-            <span class="font-extrabold text-2xl tracking-tighter hidden sm:block">primeP2Pxchange</span>
+            <span class="font-extrabold text-2xl tracking-tighter uppercase italic">primeP2P</span>
         </div>
-        <div class="hidden lg:flex gap-10 text-[13px] font-bold text-slate-400 uppercase tracking-widest">
-            <a href="#markets" class="hover:text-blue-400 transition">Markets</a>
-            <a href="#security" class="hover:text-blue-400 transition">Compliance</a>
-            <a href="#p2p" class="hover:text-blue-400 transition">P2P Node</a>
+        <div class="hidden lg:flex gap-10 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+            <a href="#markets" class="hover:text-white transition">Live Market</a>
+            <a href="#settlement" class="hover:text-white transition">Settlement</a>
+            <a href="#security" class="hover:text-white transition">Compliance</a>
         </div>
-        <div class="flex items-center gap-4" id="navAuthSection">
-            <button onclick="openAuth('login')" class="text-sm font-bold text-slate-400 hover:text-white transition">Log In</button>
-            <button onclick="openAuth('register')" class="btn-prime px-6 py-2.5 rounded-full text-sm font-extrabold">Create Node</button>
+        <div class="flex items-center gap-4">
+            <div class="hidden sm:flex items-center gap-4">
+                <button onclick="openAuth('login')" class="text-sm font-bold text-slate-400 hover:text-white transition">Log In</button>
+                <button onclick="openAuth('register')" class="btn-prime px-6 py-2.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest">Create Node</button>
+            </div>
+            <button onclick="toggleMenu()" class="lg:hidden w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="menu" class="w-5"></i></button>
         </div>
     </nav>
 
-    <section class="pt-48 pb-24 px-6 max-w-7xl mx-auto text-center">
-        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900 border border-slate-800 mb-10">
-            <div class="live-indicator animate-pulse"></div>
-            <span class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">System Status: 100% Operational</span>
+    <section class="relative pt-48 pb-32 px-6 max-w-7xl mx-auto text-center">
+        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-blue-600/5 border border-blue-500/10 mb-10">
+            <div class="live-indicator"></div>
+            <span class="text-[10px] font-black tracking-[0.3em] text-blue-400 uppercase">Global Node Network Active</span>
         </div>
-        <h1 class="hero-title mb-8">Decentralized Trust.<br><span class="text-blue-500">Global Liquidity.</span></h1>
-        <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
-            The premier 2026 infrastructure for peer-to-peer asset exchange. Securely swap USDT, SOL, and BTC for local KES with institutional-grade escrow.
+        <h1 class="hero-title mb-8 text-gradient italic uppercase">Institutional<br>Asset Settlement.</h1>
+        <p class="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
+            The premier infrastructure for global peer-to-peer exchange. Connect directly to verified institutional liquidity with sub-15 minute settlement.
         </p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-20">
-            <button onclick="openAuth('register')" class="btn-prime px-10 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3">Start Trading <i data-lucide="chevron-right" class="w-5"></i></button>
-            <button class="glass-panel px-10 py-5 rounded-2xl font-bold border-white/10 hover:bg-white/5 transition">Institutional API</button>
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-24">
+            <button onclick="openAuth('register')" class="btn-prime px-10 py-5 rounded-[2rem] font-black text-lg shadow-2xl flex items-center justify-center gap-3">Initialize Trading <i data-lucide="arrow-right-circle" class="w-6 h-6"></i></button>
+            <button class="glass-panel px-10 py-5 rounded-[2rem] font-bold border-white/10 hover:bg-white/5 transition text-sm uppercase tracking-widest">Institutional API</button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto border-t border-white/5 pt-12">
+            <div class="text-center"><p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Vol (24H)</p><h4 class="text-xl font-bold text-white tracking-tighter">$14.2M+</h4></div>
+            <div class="text-center"><p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Live Nodes</p><h4 class="text-xl font-bold text-white tracking-tighter">842 Nodes</h4></div>
+            <div class="text-center"><p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Avg Settlement</p><h4 class="text-xl font-bold text-green-500 tracking-tighter">&lt; 15 Mins</h4></div>
+            <div class="text-center"><p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Ledger Uptime</p><h4 class="text-xl font-bold text-white tracking-tighter">99.9%</h4></div>
         </div>
     </section>
 
-    <section class="px-6 pb-32 max-w-7xl mx-auto" id="markets">
-        <div class="grid lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 glass-panel p-10 rounded-[2.5rem]">
-                <div class="flex justify-between items-center mb-10">
-                    <h3 class="text-2xl font-black text-white">Settlement Calculator</h3>
-                    <i data-lucide="refresh-ccw" class="w-5 text-slate-600"></i>
+    <section id="markets" class="px-6 py-20 max-w-4xl mx-auto">
+        <div class="glass-panel rounded-[2.5rem] border-white/5 overflow-hidden">
+            <div class="p-6 bg-white/[0.02] border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 italic">Live Asset Stream</h3>
+                <span class="text-[9px] font-bold text-green-500 animate-pulse">UPDATING...</span>
+            </div>
+            <div id="assetFlowContainer" class="divide-y divide-white/5">
                 </div>
-                <div class="grid md:grid-cols-2 gap-8 items-center">
-                    <div class="space-y-4">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">You Provide</label>
-                        <div class="bg-black/40 border border-white/5 p-6 rounded-3xl flex items-center">
-                            <input id="inputAmt" type="number" value="1" class="bg-transparent text-4xl font-bold w-full outline-none text-white" oninput="runConversion()">
-                            <select id="inputCur" class="bg-slate-800 text-xs font-bold p-3 rounded-xl outline-none text-white" onchange="runConversion()">
-                                <option value="USDT">USDT</option>
-                                <option value="SOL">SOL</option>
-                                <option value="BTC">BTC</option>
-                            </select>
-                        </div>
+        </div>
+    </section>
+
+    <section class="px-6 pb-32 max-w-7xl mx-auto" id="settlement">
+        <div class="glass-panel p-8 md:p-16 rounded-[3.5rem] border-white/5 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] pointer-events-none"></div>
+            <div class="flex justify-between items-center mb-12">
+                <div><h3 class="text-3xl font-black text-white tracking-tighter italic uppercase">Liquidity Engine</h3><p class="text-xs text-slate-500 uppercase font-black tracking-widest mt-1">Institutional Conversion</p></div>
+                <div class="w-12 h-12 glass-panel rounded-2xl flex items-center justify-center text-blue-500"><i data-lucide="zap"></i></div>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Select Primary Asset</label>
+                    <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] flex items-center gap-4">
+                        <input id="inputAmt" type="number" value="1" class="bg-transparent text-5xl font-black w-full outline-none text-white tracking-tighter" oninput="runConversion()">
+                        <select id="inputCur" class="bg-slate-900 text-xs font-black p-4 rounded-2xl outline-none text-blue-400 border border-white/5" onchange="runConversion()">
+                            <option value="USDT">USDT</option><option value="BTC">BTC</option><option value="SOL">SOL</option>
+                        </select>
                     </div>
+                </div>
+                <div class="space-y-6">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Regional Settlement Rail</label>
                     <div class="space-y-4">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">You Receive (Est. KES)</label>
-                        <div class="bg-blue-600/5 border border-blue-500/20 p-6 rounded-3xl">
-                            <div id="outputAmt" class="text-4xl font-bold text-blue-400">---</div>
+                        <select id="railCur" onchange="runConversion()" class="w-full bg-black/40 border border-white/5 p-6 rounded-[2rem] text-xl font-bold text-white outline-none">
+                            <option value="KES">Kenya (KES)</option>
+                            <option value="NGN">Nigeria (NGN)</option>
+                            <option value="GHS">Ghana (GHS)</option>
+                            <option value="IQD">Iraq (IQD)</option>
+                        </select>
+                        <div class="bg-blue-600/5 border border-blue-500/10 p-8 rounded-[2.5rem]">
+                            <div class="flex items-baseline justify-between">
+                                <span class="text-xl font-bold text-blue-500 italic uppercase">EST. VALUE</span>
+                                <div id="outputAmt" class="text-4xl font-black text-white tracking-tighter">---</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -130,41 +178,61 @@
         </div>
     </section>
 
+    <section id="features" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div class="market-grid">
+            <div class="glass-panel p-10 rounded-[2.5rem] border-white/5 hover:bg-white/[0.02] transition">
+                <i data-lucide="cpu" class="text-blue-500 w-10 h-10 mb-6"></i>
+                <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-tighter italic">Instant Settlement</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Our protocol bridges traditional rails with blockchain liquidity for global settlement.</p>
+            </div>
+            <div class="glass-panel p-10 rounded-[2.5rem] border-white/5 hover:bg-white/[0.02] transition">
+                <i data-lucide="lock" class="text-green-500 w-10 h-10 mb-6"></i>
+                <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-tighter italic">Secured Escrow</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Assets remain cryptographically locked in the network until verification is complete.</p>
+            </div>
+            <div class="glass-panel p-10 rounded-[2.5rem] border-white/5 hover:bg-white/[0.02] transition">
+                <i data-lucide="fingerprint" class="text-purple-500 w-10 h-10 mb-6"></i>
+                <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-tighter italic">Verified Nodes</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Multi-level identity verification ensures all P2P merchants meet global standards.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-20 px-6 border-t border-white/5 text-center bg-black/40">
+        <div class="flex items-center justify-center gap-3 mb-6">
+            <div class="w-8 h-8 btn-prime rounded-lg flex items-center justify-center shadow-lg"><i data-lucide="shield-check" class="text-white w-5"></i></div>
+            <span class="font-extrabold tracking-tighter uppercase italic">primeP2P</span>
+        </div>
+        <p class="text-slate-600 text-[10px] uppercase font-bold tracking-[0.4em]">&copy; 2026 PrimeP2P Protocol. Institutional Grade. All Rights Reserved.</p>
+    </footer>
+
     <script>
         lucide.createIcons();
-        
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyaqvKDKq21WBqCvtGO2APfxorT1VRwRIyBNybB5fYfqHH_CZ42jpEjqEiNZOCI3Kk/exec";
 
-        // 1. NON-BLOCKING TOAST SYSTEM
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+            document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : 'auto';
+        }
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             const colorClass = type === 'success' ? 'border-green-500/50' : 'border-red-500/50';
             const iconName = type === 'success' ? 'check-circle' : 'alert-circle';
-            
             toast.className = `toast glass-panel p-5 rounded-2xl flex items-center gap-4 border ${colorClass} shadow-2xl`;
-            toast.innerHTML = `
-                <i data-lucide="${iconName}" class="${type === 'success' ? 'text-green-500' : 'text-red-500'} w-5"></i>
-                <span class="text-sm font-bold text-white">${message}</span>
-            `;
-            
-            container.appendChild(toast);
-            lucide.createIcons();
+            toast.innerHTML = `<i data-lucide="${iconName}" class="${type === 'success' ? 'text-green-500' : 'text-red-500'} w-5"></i><span class="text-sm font-bold text-white">${message}</span>`;
+            container.appendChild(toast); lucide.createIcons();
             setTimeout(() => toast.classList.add('show'), 100);
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 500);
-            }, 4000);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
-        // 2. AUTH FETCH & REDIRECT LOGIC
         async function handleAuth(mode) {
             const btn = mode === 'login' ? document.getElementById('loginBtn') : document.getElementById('regBtn');
             const originalText = btn.innerText;
             const emailField = mode === 'login' ? document.getElementById('loginEmail') : document.getElementById('regEmail');
             const passwordField = mode === 'login' ? document.getElementById('loginPass') : document.getElementById('regPass');
-            
             const payload = { action: mode };
             if (mode === 'register') {
                 payload.name = document.getElementById('regName').value;
@@ -176,72 +244,70 @@
                 payload.password = passwordField.value;
                 if(!payload.email || !payload.password) return showToast("Fill all credentials", "error");
             }
-
-            btn.innerText = "Synchronizing Node...";
-            btn.disabled = true;
-
+            btn.innerText = "Synchronizing..."; btn.disabled = true;
             try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-
+                const response = await fetch(WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
                 const res = await response.json();
-
                 if (res.success) {
-                    // FIX: Ensure both token AND email are saved
                     localStorage.setItem('prime_session', res.token);
                     localStorage.setItem('user_name', res.name);
-                    localStorage.setItem('user_email', payload.email); // Store the actual login email
-                    
-                    showToast(res.message, "success");
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1000);
+                    localStorage.setItem('user_email', payload.email);
+                    showToast(mode === 'login' ? "Node Access Active" : "Node Initialized", "success");
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
                 } else {
-                    showToast(res.message, "error");
-                    btn.innerText = originalText;
-                    btn.disabled = false;
+                    showToast(res.message, "error"); btn.innerText = originalText; btn.disabled = false;
                 }
             } catch (error) {
-                showToast("Protocol Communication Failure", "error");
-                btn.innerText = originalText;
-                btn.disabled = false;
+                showToast("Connection Failure", "error"); btn.innerText = originalText; btn.disabled = false;
             }
         }
 
-        // 3. UI HELPERS
-        function openAuth(mode) {
-            document.getElementById('authModal').classList.remove('hidden-modal');
-            toggleAuthMode(mode);
-            document.body.style.overflow = 'hidden';
-        }
+        function openAuth(mode) { document.getElementById('authModal').classList.remove('hidden-modal'); toggleAuthMode(mode); document.body.style.overflow = 'hidden'; }
+        function closeAuth() { document.getElementById('authModal').classList.add('hidden-modal'); document.body.style.overflow = 'auto'; }
+        function toggleAuthMode(mode) { const login = document.getElementById('loginForm'), register = document.getElementById('registerForm'); mode === 'register' ? (login.classList.add('hidden'), register.classList.remove('hidden')) : (login.classList.remove('hidden'), register.classList.add('hidden')); }
 
-        function closeAuth() {
-            document.getElementById('authModal').classList.add('hidden-modal');
-            document.body.style.overflow = 'auto';
-        }
+        // Multi-Regional Engine
+        const currentRates = { 
+            USDT: { KES: 129.50, NGN: 1545.00, GHS: 16.20, IQD: 1310.00 },
+            SOL: { KES: 18450.00, NGN: 220000.00, GHS: 2310.00, IQD: 186500.00 },
+            BTC: { KES: 12450000, NGN: 148000000, GHS: 1550000, IQD: 125000000 }
+        };
 
-        function toggleAuthMode(mode) {
-            const login = document.getElementById('loginForm');
-            const register = document.getElementById('registerForm');
-            mode === 'register' ? (login.classList.add('hidden'), register.classList.remove('hidden')) : (login.classList.remove('hidden'), register.classList.add('hidden'));
-        }
-
-        // 4. CONVERTER ENGINE
-        let currentRates = { USDT: 129.50, SOL: 18450, BTC: 12450000 };
         function runConversion() {
             const amt = document.getElementById('inputAmt').value || 0;
-            const cur = document.getElementById('inputCur').value;
+            const asset = document.getElementById('inputCur').value;
+            const rail = document.getElementById('railCur').value;
             const out = document.getElementById('outputAmt');
-            out.innerText = (amt * currentRates[cur]).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            const total = (amt * currentRates[asset][rail]).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            out.innerText = `${total} ${rail}`;
         }
 
-        window.onload = () => {
-            if(localStorage.getItem('prime_session')) window.location.href = 'dashboard.html';
-            runConversion();
+        // Live Asset Flow logic
+        function initLiveFlow() {
+            const assets = [
+                { s: 'BTC', n: 'Bitcoin', p: 'KES 8,536,806.54', c: '-1.29%' },
+                { s: 'ETH', n: 'Ethereum', p: 'KES 249,712.96', c: '-1.50%' },
+                { s: 'USDT', n: 'Tether', p: 'KES 128.84', c: '-0.01%' },
+                { s: 'SOL', n: 'Solana', p: 'KES 18,450.12', c: '+2.14%' }
+            ];
+            document.getElementById('assetFlowContainer').innerHTML = assets.map(a => `
+                <div class="asset-row p-5 flex justify-between items-center">
+                    <div class="flex items-center gap-4 text-left">
+                        <div class="w-10 h-10 rounded-full bg-blue-600/10 flex items-center justify-center font-black text-blue-500 text-[10px]">${a.s}</div>
+                        <div><p class="font-bold text-sm text-white">${a.n}</p><p class="text-[9px] text-slate-500 uppercase">${a.s}</p></div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-sm text-white">${a.p}</p>
+                        <p class="text-[10px] font-bold ${a.c.includes('-') ? 'text-red-500' : 'text-green-500'}">${a.c}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.onload = () => { 
+            if(localStorage.getItem('prime_session')) window.location.href = 'dashboard.html'; 
+            runConversion(); 
+            initLiveFlow();
         };
     </script>
 </body>
