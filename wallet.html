@@ -246,38 +246,51 @@
         }
 
         async function withdrawFunds() {
-            const btn = document.getElementById('withdrawBtn');
-            const amount = document.getElementById('withdrawAmount').value;
-            const address = document.getElementById('withdrawAddress').value;
-            const asset = document.getElementById('withdrawAsset').value;
-            const email = localStorage.getItem('user_email');
+    const btn = document.getElementById('withdrawBtn');
+    const amount = document.getElementById('withdrawAmount').value;
+    const address = document.getElementById('withdrawAddress').value;
+    const asset = document.getElementById('withdrawAsset').value;
+    const email = localStorage.getItem('user_email');
 
-            if(!amount || !address) return showToast("Fill all required fields", "error");
-            if(parseFloat(amount) > currentBalance) return showToast("Insufficient balance", "error");
+    // 1. Initial Node Validation
+    if(!amount || !address) return showToast("Fill all required fields", "error");
+    if(parseFloat(amount) > currentBalance) return showToast("Insufficient node balance", "error");
 
-            btn.innerText = "Transmitting..."; btn.disabled = true;
+    btn.innerText = "Synchronizing Ledger..."; 
+    btn.disabled = true;
 
-            try {
-                const res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        action: 'submit_withdrawal', 
-                        email: email, 
-                        amount: amount, 
-                        address: address, 
-                        asset: asset 
-                    })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    showToast("Withdrawal Request Logged", "success");
-                    setTimeout(() => window.location.reload(), 2000);
-                } else {
-                    showToast(data.message, "error");
-                }
-            } catch (e) { showToast("Protocol Interference", "error"); }
-            btn.innerText = "Submit Request"; btn.disabled = false;
+    try {
+        // 2. Transmit Withdrawal & Auto-Deduction Signal
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'submit_withdrawal', 
+                email: email, 
+                amount: amount, 
+                address: address, 
+                asset: asset 
+            })
+        });
+        
+        const data = await res.json();
+        
+        if(data.success) {
+            // 3. Success Feedback: Confirming deduction happened
+            showToast("Balance updated. Request pending approval.", "success");
+            
+            // Reload to show the updated balance and 'PENDING_APPROVAL' in ledger
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            showToast(data.message, "error");
+            btn.innerText = "Submit Request";
+            btn.disabled = false;
         }
+    } catch (e) { 
+        showToast("Protocol Interference: Connection Lost", "error"); 
+        btn.innerText = "Submit Request";
+        btn.disabled = false;
+    }
+}
 
         function observePayment(userEmail) {
             if (observerInterval) clearInterval(observerInterval);
