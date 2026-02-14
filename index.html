@@ -42,53 +42,32 @@
 
     <div id="toastContainer" class="flex flex-col gap-3"></div>
 
-    <div class="w-full bg-blue-600/10 border-b border-white/5 py-2 overflow-hidden whitespace-nowrap fixed top-0 z-[110]">
-        <div class="animate-marquee flex gap-12 items-center text-[10px] font-black uppercase tracking-widest text-blue-400">
-            <span>USDT/USD: 1.00 <i class="text-green-500">▲ 0.01%</i></span>
-            <span>BTC/USD: 48,291.50 <i class="text-red-500">▼ 0.42%</i></span>
-            <span>SOL/USD: 104.12 <i class="text-green-500">▲ 2.15%</i></span>
-            <span>ETH/USD: 2,541.20 <i class="text-green-500">▲ 1.05%</i></span>
-            <span>USDT/USD: 1.00 <i class="text-green-500">▲ 0.01%</i></span>
-            <span>BTC/USD: 48,291.50 <i class="text-red-500">▼ 0.42%</i></span>
-        </div>
-    </div>
-
-    <div id="mobileMenu" class="fixed inset-0 z-[150] bg-[#05070a] p-8 flex flex-col justify-center gap-8 text-center text-left">
-        <button onclick="toggleMenu()" class="absolute top-8 right-8 text-slate-400"><i data-lucide="x" class="w-10 h-10"></i></button>
-        <a href="#markets" onclick="toggleMenu()" class="text-4xl font-black text-white italic uppercase tracking-tighter">Market Flow</a>
-        <a href="#settlement" onclick="toggleMenu()" class="text-4xl font-black text-white italic uppercase tracking-tighter">Settlement</a>
-        <a href="#features" onclick="toggleMenu()" class="text-4xl font-black text-white italic uppercase tracking-tighter">Compliance</a>
-        <div class="h-[1px] bg-white/5 w-full my-4"></div>
-        <button onclick="openAuth('login'); toggleMenu()" class="w-full py-5 glass-panel rounded-2xl font-bold text-blue-400">Access Node</button>
-        <button onclick="openAuth('register'); toggleMenu()" class="w-full py-5 btn-prime rounded-2xl font-black uppercase">Initialize Node</button>
-    </div>
-
     <div id="authModal" class="fixed inset-0 z-[300] flex items-center justify-center px-6 modal-overlay hidden-modal">
         <div class="absolute inset-0" onclick="closeAuth()"></div>
         <div class="glass-panel w-full max-w-[440px] p-10 rounded-[2.5rem] relative z-10 modal-content border-white/10 text-center">
             
             <div id="loginForm">
-                <h3 class="text-3xl font-black mb-2 tracking-tight uppercase italic">Node Login</h3>
+                <h3 class="text-3xl font-black mb-2 tracking-tight uppercase italic text-gradient">Node Login</h3>
                 <p class="text-slate-500 text-xs mb-8 uppercase tracking-widest">Connect to Global Ledger</p>
                 <div class="space-y-4">
                     <input type="email" id="loginEmail" placeholder="Institutional Email" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 transition text-white text-sm">
                     <input type="password" id="loginPass" placeholder="Access Key" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 transition text-white text-sm">
-                    <button id="loginBtn" onclick="handleAuth('login')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Establish Connection</button>
+                    <button id="loginBtn" onclick="handleAuth('login')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl text-white">Establish Connection</button>
                 </div>
                 <div class="mt-6 flex flex-col gap-3">
-                    <button onclick="toggleAuthMode('forgot')" class="text-[10px] font-bold text-slate-500 hover:text-blue-400 uppercase tracking-widest">Recover Node Access</button>
-                    <button onclick="toggleAuthMode('register')" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Initialize New Node</button>
+                    <button onclick="toggleAuthMode('forgot')" class="text-[10px] font-bold text-slate-500 hover:text-blue-400 uppercase tracking-widest transition">Recover Node Access</button>
+                    <button onclick="toggleAuthMode('register')" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition">Initialize New Node</button>
                 </div>
             </div>
 
-            <div id="registerForm" class="hidden">
-                <h3 class="text-3xl font-black mb-2 tracking-tight uppercase italic">Initialize Node</h3>
-                <p class="text-slate-500 text-xs mb-8 uppercase tracking-widest">Setup Trading Identity</p>
-                <div class="space-y-4 text-left">
+            <div id="registerForm" class="hidden text-left">
+                <h3 class="text-3xl font-black mb-2 tracking-tight uppercase italic text-center text-gradient">Initialize Node</h3>
+                <p class="text-slate-500 text-xs mb-8 uppercase tracking-widest text-center">Setup Trading Identity</p>
+                <div class="space-y-4">
                     <input type="text" id="regName" placeholder="Full Merchant Name" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 text-white text-sm">
                     <input type="email" id="regEmail" placeholder="Institutional Email" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 text-white text-sm">
                     <input type="password" id="regPass" placeholder="Define Access Key" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl outline-none focus:border-blue-500 text-white text-sm">
-                    <button id="regBtn" onclick="handleAuth('register')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Initialize Node</button>
+                    <button id="regBtn" onclick="handleAuth('register')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl text-white">Authorize Registry</button>
                 </div>
                 <p class="mt-8 text-center text-xs text-slate-500 uppercase tracking-widest">Registered? <button onclick="toggleAuthMode('login')" class="text-blue-400 font-bold">Log In</button></p>
             </div>
@@ -97,20 +76,21 @@
                 <div class="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500 mx-auto mb-6">
                     <i data-lucide="mail-check" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-2xl font-black mb-2 uppercase italic tracking-tighter">Identity Proof</h3>
-                <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-widest">Enter the node code sent to your email</p>
+                <h3 class="text-2xl font-black mb-2 uppercase italic tracking-tighter text-gradient">Identity Proof</h3>
+                <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-widest">Enter the code sent to your email</p>
                 <input id="otpInput" type="text" maxlength="6" placeholder="000000" class="w-full bg-black/40 border border-white/5 p-5 rounded-2xl text-3xl font-black text-white text-center tracking-[0.5em] outline-none focus:border-blue-500 transition mb-6">
-                <button id="otpBtn" onclick="handleAuth('verify')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Activate Node</button>
+                <button id="otpBtn" onclick="handleAuth('verify')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white">Activate Node</button>
+                <p class="mt-6 text-[9px] text-slate-600 uppercase tracking-widest">Signal sent from <span class="text-blue-400">Primep2pxchange@gmail.com</span></p>
             </div>
 
             <div id="forgotForm" class="hidden">
-                <h3 class="text-2xl font-black mb-2 uppercase italic tracking-tighter">Access Recovery</h3>
-                <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-widest">Enter email to receive temporary key</p>
+                <h3 class="text-2xl font-black mb-2 uppercase italic tracking-tighter text-gradient">Access Recovery</h3>
+                <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-widest">Request temporary node key</p>
                 <div class="space-y-4">
-                    <input type="email" id="forgotEmail" placeholder="Institutional Email" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl text-sm text-white outline-none">
-                    <button id="forgotBtn" onclick="handleAuth('reset')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Request Key</button>
+                    <input type="email" id="forgotEmail" placeholder="Institutional Email" class="w-full bg-black/40 border border-white/5 p-4 rounded-2xl text-sm text-white outline-none focus:border-blue-500 transition">
+                    <button id="forgotBtn" onclick="handleAuth('reset')" class="btn-prime w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl text-white">Request Signal</button>
                 </div>
-                <button onclick="toggleAuthMode('login')" class="mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Back to Login</button>
+                <button onclick="toggleAuthMode('login')" class="mt-6 text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition">Back to Connect</button>
             </div>
 
         </div>
@@ -131,7 +111,7 @@
         <div class="flex items-center gap-4">
             <div class="hidden sm:flex items-center gap-4">
                 <button onclick="openAuth('login')" class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition">Access Node</button>
-                <button onclick="openAuth('register')" class="btn-prime px-6 py-2.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest">Initialize</button>
+                <button onclick="openAuth('register')" class="btn-prime px-6 py-2.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest text-white">Initialize</button>
             </div>
             <button onclick="toggleMenu()" class="lg:hidden w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="menu" class="w-5"></i></button>
         </div>
@@ -147,83 +127,10 @@
             Verified institutional liquidity gateway. Access zero-trust P2P settlement nodes with sub-15 minute global fulfillment.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4 mb-24">
-            <button onclick="openAuth('register')" class="btn-prime px-10 py-5 rounded-[2rem] font-black text-lg shadow-2xl flex items-center justify-center gap-3 uppercase italic">Initialize Trading Node <i data-lucide="zap" class="w-6 h-6"></i></button>
+            <button onclick="openAuth('register')" class="btn-prime px-10 py-5 rounded-[2rem] font-black text-lg shadow-2xl flex items-center justify-center gap-3 uppercase italic text-white">Initialize Trading Node <i data-lucide="zap" class="w-6 h-6"></i></button>
             <button class="glass-panel px-10 py-5 rounded-[2rem] font-bold border-white/10 hover:bg-white/5 transition text-sm uppercase tracking-widest">Institutional API</button>
         </div>
     </section>
-
-    <section class="px-6 pb-32 max-w-7xl mx-auto" id="settlement">
-        <div class="glass-panel p-8 md:p-16 rounded-[3.5rem] border-blue-500/20 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] pointer-events-none"></div>
-            <div class="flex justify-between items-center mb-12 text-left">
-                <div><h3 class="text-3xl font-black text-white tracking-tighter italic uppercase">Liquidity Engine</h3><p class="text-xs text-slate-500 uppercase font-black tracking-widest mt-1">Cross-Border Conversion Protocol</p></div>
-                <div class="w-12 h-12 glass-panel rounded-2xl flex items-center justify-center text-blue-500"><i data-lucide="cpu"></i></div>
-            </div>
-            <div class="grid lg:grid-cols-2 gap-12 items-center text-left">
-                <div class="space-y-6">
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Node Asset</label>
-                    <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] flex items-center gap-4">
-                        <input id="inputAmt" type="number" value="1" class="bg-transparent text-5xl font-black w-full outline-none text-white tracking-tighter" oninput="runConversion()">
-                        <select id="inputCur" class="bg-slate-900 text-xs font-black p-4 rounded-2xl outline-none text-blue-400 border border-white/5" onchange="runConversion()">
-                            <option value="USDT">USDT</option><option value="BTC">BTC</option><option value="SOL">SOL</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="space-y-6">
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Regional Settlement Rail</label>
-                    <div class="space-y-4">
-                        <select id="railCur" onchange="runConversion()" class="w-full bg-black/40 border border-white/5 p-6 rounded-[2rem] text-xl font-bold text-white outline-none">
-                            <option value="KES">Kenya (KES)</option><option value="NGN">Nigeria (NGN)</option><option value="GHS">Ghana (GHS)</option>
-                        </select>
-                        <div class="bg-blue-600/5 border border-blue-500/10 p-8 rounded-[2.5rem]">
-                            <div class="flex items-baseline justify-between">
-                                <span class="text-xl font-bold text-blue-500 italic uppercase">EST. VALUE</span>
-                                <div id="outputAmt" class="text-4xl font-black text-white tracking-tighter">---</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="markets" class="px-6 py-20 max-w-4xl mx-auto text-left">
-        <div class="glass-panel rounded-[2.5rem] border-white/5 overflow-hidden">
-            <div class="p-6 bg-white/[0.02] border-b border-white/5 flex justify-between items-center">
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 italic">Live Asset Stream</h3>
-                <span class="text-[9px] font-bold text-green-500 animate-pulse uppercase">Syncing Nodes...</span>
-            </div>
-            <div id="assetFlowContainer" class="divide-y divide-white/5"></div>
-        </div>
-    </section>
-
-    <section id="features" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5 text-left">
-        <div class="market-grid">
-            <div class="glass-panel p-10 rounded-[2.5rem] border-white/5 hover:bg-white/[0.02] transition">
-                <i data-lucide="cpu" class="text-blue-500 w-10 h-10 mb-6"></i>
-                <h3 class="text-xl font-bold text-white mb-4 uppercase italic">Instant Settlement</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">Institutional node-to-node protocol bridging traditional rails with blockchain liquidity.</p>
-            </div>
-            <div class="glass-panel p-10 rounded-[2.5rem] border-white/5 hover:bg-white/[0.02] transition">
-                <i data-lucide="lock" class="text-green-500 w-10 h-10 mb-6"></i>
-                <h3 class="text-xl font-bold text-white mb-4 uppercase italic">Secured Escrow</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">Assets remain cryptographically locked in the network until identity verification is complete.</p>
-            </div>
-            <div class="glass-panel p-10 rounded-[2.5rem] border-white/5 hover:bg-white/[0.02] transition">
-                <i data-lucide="fingerprint" class="text-purple-500 w-10 h-10 mb-6"></i>
-                <h3 class="text-xl font-bold text-white mb-4 uppercase italic">Verified Nodes</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">Institutional grade P2P compliance ensures all liquidity providers meet global standards.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="py-20 px-6 border-t border-white/5 text-center bg-black/40">
-        <div class="flex items-center justify-center gap-3 mb-6">
-            <div class="w-8 h-8 btn-prime rounded-lg flex items-center justify-center shadow-lg"><i data-lucide="shield-check" class="text-white w-5"></i></div>
-            <span class="font-extrabold tracking-tighter uppercase italic">primeP2P</span>
-        </div>
-        <p class="text-slate-600 text-[10px] uppercase font-bold tracking-[0.4em]">&copy; 2026 PrimeP2P Protocol. Institutional Grade. All Rights Reserved.</p>
-    </footer>
 
     <script>
         lucide.createIcons();
@@ -252,7 +159,7 @@
         }
 
         async function handleAuth(mode) {
-            const btn = document.getElementById(mode + 'Btn');
+            const btn = document.getElementById(mode + 'Btn') || document.getElementById('otpBtn');
             const originalText = btn.innerText;
             const payload = { action: mode };
 
@@ -260,10 +167,11 @@
                 payload.name = document.getElementById('regName').value;
                 payload.email = document.getElementById('regEmail').value;
                 payload.password = document.getElementById('regPass').value;
-                if(!payload.name || !payload.email || !payload.password) return alert("Fill all fields");
+                if(!payload.name || !payload.email || !payload.password) return showToast("All credentials required", "error");
             } else if(mode === 'login') {
                 payload.email = document.getElementById('loginEmail').value;
                 payload.password = document.getElementById('loginPass').value;
+                if(!payload.email || !payload.password) return showToast("Credentials required", "error");
             } else if(mode === 'verify') {
                 payload.action = 'verify_otp';
                 payload.email = document.getElementById('regEmail').value || document.getElementById('loginEmail').value;
@@ -273,7 +181,7 @@
                 payload.email = document.getElementById('forgotEmail').value;
             }
 
-            btn.innerText = "Synchronizing..."; btn.disabled = true;
+            btn.innerText = "SYNCHRONIZING..."; btn.disabled = true;
 
             try {
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
@@ -281,47 +189,49 @@
                 
                 if (data.success) {
                     if (mode === 'register') {
+                        showToast("Verification code dispatched", "success");
                         toggleAuthMode('otp');
                     } else if (mode === 'login' || mode === 'verify') {
                         localStorage.setItem('prime_session', data.token);
                         localStorage.setItem('user_email', payload.email);
                         localStorage.setItem('user_name', data.name);
-                        window.location.href = 'dashboard.html';
+                        showToast("Authentication Successful", "success");
+                        
+                        // Sync Identity Profile failover
+                        const logRes = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_get_logs' }) });
+                        const logData = await logRes.json();
+                        const kycLog = logData.logs.find(l => l[1] === payload.email && l[2] === "KYC_PENDING");
+                        if (kycLog) {
+                            const meta = JSON.parse(kycLog[3]);
+                            localStorage.setItem('user_pfp', meta.selfie);
+                        }
+                        
+                        setTimeout(() => window.location.href = 'dashboard.html', 1200);
                     } else {
-                        alert(data.message);
+                        showToast(data.message, "success");
                         toggleAuthMode('login');
                     }
                 } else if (data.isPending) {
+                    showToast("Verification Pending", "error");
                     toggleAuthMode('otp');
                 } else {
-                    alert(data.message);
+                    showToast(data.message, "error");
                 }
-            } catch (e) { alert("Sync Error"); }
+            } catch (e) { showToast("Ledger Sync Failure", "error"); }
             
             btn.innerText = originalText; btn.disabled = false;
         }
 
-        const rates = { USDT: { KES: 129.5, NGN: 1545 }, BTC: { KES: 12450000, NGN: 148000000 }, SOL: { KES: 18450, NGN: 220000 } };
-        function runConversion() {
-            const amt = document.getElementById('inputAmt').value;
-            const cur = document.getElementById('inputCur').value;
-            const rail = document.getElementById('railCur').value;
-            document.getElementById('outputAmt').innerText = `${(amt * (rates[cur][rail] || 1)).toLocaleString()} ${rail}`;
+        function showToast(m, t) {
+            const c = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast glass-panel p-5 rounded-2xl flex items-center gap-4 border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
+            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-5"></i><span class="text-sm font-bold text-white uppercase tracking-widest">${m}</span>`;
+            c.appendChild(toast); lucide.createIcons(); setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
-        function initLiveFlow() {
-            const assets = [{s:'USDT', n:'Tether', p:'KES 129.50'}, {s:'BTC', n:'Bitcoin', p:'KES 12,450,000'}, {s:'SOL', n:'Solana', p:'KES 18,450'}];
-            document.getElementById('assetFlowContainer').innerHTML = assets.map(a => `
-                <div class="asset-row p-5 flex justify-between items-center">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-600/10 flex items-center justify-center font-black text-blue-500 text-[10px]">${a.s}</div>
-                        <div><p class="font-bold text-sm text-white">${a.n}</p><p class="text-[9px] text-slate-500 uppercase">${a.s}</p></div>
-                    </div>
-                    <div class="text-right"><p class="font-black text-sm text-white">${a.p}</p><p class="text-[10px] font-bold text-green-500">Node Active</p></div>
-                </div>`).join('');
-        }
-
-        window.onload = () => { if(localStorage.getItem('prime_session')) window.location.href='dashboard.html'; initLiveFlow(); runConversion(); };
+        window.onload = () => { if(localStorage.getItem('prime_session')) window.location.href='dashboard.html'; };
     </script>
 </body>
 </html>
