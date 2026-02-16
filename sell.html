@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Liquidity Exit | primeP2Pxchange</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="p2plogo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 19, 26, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-prime { background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%); }
+        .market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; width: 100%; }
+        #toastContainer { position: fixed; top: 2rem; right: 2rem; z-index: 1000; pointer-events: none; }
+        .toast { pointer-events: auto; transform: translateX(150%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .modal-overlay { transition: opacity 0.3s ease; background: rgba(0,0,0,0.85); backdrop-blur: 8px; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .hidden-modal { opacity: 0; visibility: hidden; pointer-events: none; position: fixed; }
+    </style>
+</head>
+<body class="p-6 md:p-12 text-left">
+
+    <div id="toastContainer" class="flex flex-col gap-3 text-left"></div>
+
+    <div id="successModal" class="fixed inset-0 z-[600] flex items-center justify-center px-6 modal-overlay hidden-modal">
+        <div class="glass-panel w-full max-w-[400px] p-10 rounded-[2.5rem] relative z-10 modal-content border-blue-500/30 text-center">
+            <div class="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="shield-check" class="text-blue-500 w-10 h-10"></i>
+            </div>
+            <h3 class="text-2xl font-black text-white uppercase italic tracking-tighter mb-2">Trade   Intialized</h3>
+            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-[0.15em] leading-relaxed mb-8">Exit request submitted. Cryptographic escrow initialized for merchant payout. <br> PENDING PAYOUT</p>
+            <button onclick="window.location.href='transaction.html'" class="btn-prime w-full py-4 rounded-2xl font-black text-white text-[10px] uppercase shadow-xl tracking-widest transition active:scale-95">Enter History Vault</button>
+        </div>
+    </div>
+
+    <div id="fulfillModal" class="fixed inset-0 z-[300] flex items-center justify-center px-6 modal-overlay hidden-modal">
+        <div class="absolute inset-0" onclick="closeModal()"></div>
+        <div class="glass-panel w-full max-w-[480px] p-8 rounded-[2.5rem] relative z-10 modal-content border-blue-500/20 text-center">
+            <h3 class="text-2xl font-black mb-1 text-white uppercase italic tracking-tighter">Exit Signal</h3>
+            <p class="text-slate-500 text-xs mb-8 uppercase tracking-widest">Merchant: <span id="modalMerchant" class="text-blue-400 font-black">---</span></p>
+
+            <div class="space-y-6 text-left">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Amount to Spend (<span id="selectedAssetLabel">USDT</span>)</label>
+                    <div class="bg-black/40 border border-white/5 p-5 rounded-2xl flex flex-col mt-2">
+                        <input id="tradeAmt" type="number" placeholder="0.00" class="bg-transparent text-2xl font-black w-full outline-none text-white tracking-tighter" oninput="calculateProfit()">
+                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
+                            <span class="text-[8px] text-slate-500 font-black uppercase tracking-widest">Node Balance</span>
+                            <span id="accountBalanceDisplay" class="text-[9px] text-blue-400 font-black tracking-widest italic">Syncing...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-600/5 border border-blue-500/10 p-6 rounded-3xl text-center">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Est. Payout (Net Profit)</label>
+                    <div class="text-3xl font-black text-blue-400 mt-1 tracking-tighter" id="profitDisplay">$0.00</div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Receiving Rail (CRYPTO ADDRESS...)</label>
+                    <input id="userPayoutAddr" type="text" class="w-full bg-black/40 border border-white/5 p-4 rounded-xl text-[10px] font-mono text-blue-400 outline-none" placeholder="Enter payout credentials">
+                </div>
+
+                <button id="confirmExecuteBtn" onclick="initiateExit()" class="btn-prime w-full py-4 rounded-2xl font-black text-white text-xs uppercase shadow-xl tracking-widest transition">Execute Node Sync</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:row justify-between items-start md:items-center gap-6 mb-12">
+            <div>
+                <button onclick="window.location.href='p2ptrading.html'" class="flex items-center gap-2 text-slate-500 hover:text-white transition text-[10px] font-black uppercase mb-4 tracking-widest">
+                    <i data-lucide="arrow-left" class="w-4"></i> Return to Trading Floor
+                </button>
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase italic">Liquidate Assets</h2>
+                <p class="text-slate-500 text-sm">Convert node liquidity into institutional profit payouts.</p>
+            </div>
+        </header>
+
+        <div class="glass-panel p-6 rounded-[2.5rem] mb-12 flex items-center justify-between">
+            <div class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] italic">Authorized Merchant Sell Nodes</div>
+            <select id="assetFilter" onchange="fetchSellMarket()" class="bg-black/40 border border-white/10 px-6 py-2.5 rounded-xl text-xs font-bold text-white outline-none uppercase tracking-widest">
+                <option value="USDT">USDT</option>
+                <option value="BTC">BTC</option>
+            </select>
+        </div>
+
+        <div id="sellListings" class="market-grid">
+            <div class="p-20 text-center animate-pulse text-slate-700 font-bold uppercase col-span-full tracking-widest">Polling Verified Exit Nodes...</div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyaqvKDKq21WBqCvtGO2APfxorT1VRwRIyBNybB5fYfqHH_CZ42jpEjqEiNZOCI3Kk/exec";
+        let selectedNode = null;
+        let userBalance = 0;
+
+        async function fetchSellMarket() {
+            const asset = document.getElementById('assetFilter').value;
+            const list = document.getElementById('sellListings');
+            try {
+                const response = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'get_market_listings', asset: asset, type: 'sell' }) 
+                });
+                const data = await response.json();
+                
+                list.innerHTML = data.listings.map(node => `
+                    <div class="glass-panel p-8 rounded-[2.5rem] border-white/5 text-left group hover:border-blue-500/20 transition-all">
+                        <div class="flex justify-between items-start mb-8">
+                            <div class="flex items-center gap-4">
+                                <img src="${node.avatar}" class="w-14 h-14 rounded-full border border-white/10 bg-slate-900 object-cover" 
+                                     onerror="this.src='https://ui-avatars.com/api/?name=${node.merchant}&background=0D1117&color=3b82f6&bold=true'">
+                                <div><h4 class="text-white font-black uppercase tracking-tighter text-lg italic">${node.merchant}</h4><div class="flex items-center gap-1 text-orange-400"><i data-lucide="star" class="w-3 h-3 fill-current"></i><span class="text-[10px] font-black">${node.rating || '5.0'}</span></div></div>
+                            </div>
+                            <button onclick="openFulfillModal('${node.merchant}', ${node.price}, ${node.min}, ${node.max})" 
+                                    class="bg-blue-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase hover:scale-105 transition tracking-widest">
+                                SELL
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div><p class="text-[10px] text-slate-500 uppercase font-black mb-1">Rate</p><h5 class="text-3xl font-black text-white tracking-tighter">$${parseFloat(node.price).toLocaleString()}</h5></div>
+                        </div>
+                        <div class="pt-6 border-t border-white/5 space-y-3">
+                            <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-500 uppercase font-black">Node Limit</span><span class="text-white tracking-tighter">$${node.min} - $${node.max}</span></div>
+                            <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-500 uppercase font-black">Exit Rail</span><span class="text-blue-400 font-black uppercase italic">${node.payment}</span></div>
+                        </div>
+                    </div>`).join('');
+                lucide.createIcons();
+            } catch (e) { showToast("Sync Failure", "error"); }
+        }
+
+        /* SWIFT CREDENTIAL & BALANCE SYNC */
+        async function openFulfillModal(merchant, price, min, max) {
+            const asset = document.getElementById('assetFilter').value;
+            document.getElementById('selectedAssetLabel').innerText = asset;
+            document.getElementById('accountBalanceDisplay').innerText = "Syncing Ledger...";
+            
+            showToast("VERIFYING NODE STATUS...", "info"); //
+            try {
+                const res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'get_user_data', token: localStorage.getItem('prime_session') }) 
+                });
+                const data = await res.json();
+
+                if (data.kycLevel < 2) return showToast("Level 2 Identity Required", "error");
+                
+                userBalance = parseFloat(data.balances[asset] || 0);
+                document.getElementById('accountBalanceDisplay').innerText = `${userBalance.toLocaleString()} ${asset}`;
+
+                if (userBalance <= 0) return showToast(`No ${asset} liquidity available`, "error");
+
+                selectedNode = { merchant, price, min, max };
+                document.getElementById('modalMerchant').innerText = merchant;
+                document.getElementById('fulfillModal').classList.remove('hidden-modal');
+            } catch (e) { showToast("Ledger Interrupted", "error"); }
+        }
+
+        /* PROFIT CALCULATOR (USD) */
+        function calculateProfit() {
+            const val = parseFloat(document.getElementById('tradeAmt').value) || 0;
+            const display = document.getElementById('profitDisplay');
+            
+            // Payout value is spent Crypto multiplied by Merchant Rate
+            const profit = val * selectedNode.price;
+            display.innerText = `$${profit.toLocaleString()}`;
+            
+            if(val > userBalance) display.classList.add('text-red-500');
+            else display.classList.remove('text-red-500');
+        }
+
+        async function initiateExit() {
+            const amt = document.getElementById('tradeAmt').value;
+            const addr = document.getElementById('userPayoutAddr').value;
+            const asset = document.getElementById('assetFilter').value;
+
+            if (parseFloat(amt) > userBalance) return showToast("Insufficient liquidity", "error");
+            if (!addr) return showToast("Payout credentials required", "error");
+            
+            const btn = document.getElementById('confirmExecuteBtn');
+            btn.disabled = true; btn.innerText = "Encrypting Signal...";
+            
+            try {
+                const payload = { 
+                    action: 'create_trade', 
+                    type: 'sell',
+                    userEmail: localStorage.getItem('user_email'), 
+                    merchant: selectedNode.merchant, 
+                    asset: asset, 
+                    amount: amt * selectedNode.price, // Final settlement value in USD
+                    cryptoAmount: amt,
+                    payoutAddr: addr
+                };
+
+                const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if(result.success) {
+                    document.getElementById('fulfillModal').classList.add('hidden-modal');
+                    document.getElementById('successModal').classList.remove('hidden-modal'); // CUSTOM POPUP
+                } else { 
+                    showToast(result.message, "error"); 
+                    btn.disabled = false; 
+                }
+            } catch (e) { showToast("Sync Failure", "error"); btn.disabled = false; }
+        }
+
+        function closeModal() { document.getElementById('fulfillModal').classList.add('hidden-modal'); }
+
+        function showToast(m, t) {
+            const c = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast glass-panel p-5 rounded-2xl flex items-center gap-4 border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
+            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-5"></i><span class="text-[10px] font-bold text-white uppercase tracking-widest">${m}</span>`;
+            c.appendChild(toast); lucide.createIcons(); setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        window.onload = fetchSellMarket;
+    </script>
+</body>
+</html>
