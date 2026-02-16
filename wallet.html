@@ -40,23 +40,23 @@
         }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="flex min-h-screen text-left">
 
     <div id="toastContainer" class="flex flex-col gap-3"></div>
     <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <div id="depositModal" class="fixed inset-0 z-[600] flex items-center justify-center px-6 modal-overlay hidden-modal">
         <div class="absolute inset-0" onclick="closeDeposit()"></div>
-        <div class="glass-panel w-full max-w-[450px] p-8 rounded-[2.5rem] relative z-10 modal-content border-blue-500/20">
+        <div class="glass-panel w-full max-w-[450px] p-8 rounded-[2.5rem] relative z-10 modal-content border-blue-500/20 text-center">
             <div id="depositStep1">
                 <div class="flex justify-between items-center mb-6 text-left">
-                    <h3 class="text-2xl font-black text-white uppercase italic">Fund Node</h3>
+                    <h3 class="text-2xl font-black text-white uppercase italic tracking-tighter">Fund Node</h3>
                     <button onclick="closeDeposit()" class="text-slate-500 hover:text-white transition"><i data-lucide="x" class="w-5"></i></button>
                 </div>
                 <div class="space-y-6 text-left">
                     <div class="bg-black/40 border border-white/5 p-5 rounded-2xl">
                         <label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Amount (USD)</label>
-                        <input id="cryptoAmount" type="number" class="bg-transparent text-2xl font-black w-full outline-none text-white" placeholder="0.00">
+                        <input id="cryptoAmount" type="number" class="bg-transparent text-2xl font-black w-full outline-none text-white" placeholder="10">
                     </div>
                     <div class="bg-black/40 border border-white/5 p-5 rounded-2xl">
                         <label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Network Asset</label>
@@ -66,7 +66,7 @@
                             <option value="sol">Solana</option>
                         </select>
                     </div>
-                    <button onclick="processDeposit()" id="depositBtn" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase shadow-lg">Initialize Gateway</button>
+                    <button onclick="processDeposit()" id="depositBtn" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase shadow-lg tracking-widest">Initialize Gateway</button>
                 </div>
             </div>
 
@@ -78,31 +78,27 @@
             <div id="depositStep3" class="hidden space-y-6 py-4 text-left">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="qr-code" class="text-green-500 w-8"></i></div>
-                    <h4 class="text-lg font-black text-white tracking-tight">Payment Instruction</h4>
+                    <h4 class="text-lg font-black text-white tracking-tight">Institutional Signal Active</h4>
                 </div>
                 <div class="bg-black/40 border border-white/5 p-5 rounded-2xl space-y-4">
-                    <div>
-                        <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Amount Due</label>
-                        <p class="text-xl font-black text-white" id="displayPayAmount">0.00</p>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Deposit Address</label>
+                    <div><label class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Pay Amount</label><p class="text-xl font-black text-white" id="displayPayAmount">0.00</p></div>
+                    <div><label class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Deposit Address</label>
                         <div class="flex items-center gap-2 mt-1">
                             <p class="text-[10px] font-mono text-blue-400 break-all bg-blue-500/5 p-3 rounded-lg border border-blue-500/10 flex-1" id="displayPayAddress">---</p>
                             <button onclick="copyDepositAddr()" class="p-3 bg-blue-600/10 text-blue-400 rounded-lg hover:bg-blue-600/20 transition"><i data-lucide="copy" class="w-4"></i></button>
                         </div>
                     </div>
                 </div>
-                <button onclick="closeDeposit()" class="w-full py-4 glass-panel text-white rounded-2xl font-black text-[10px] uppercase border-white/10 hover:bg-white/5">Close Instruction</button>
+                <button onclick="closeDeposit()" class="w-full py-4 glass-panel text-white rounded-2xl font-black text-[10px] uppercase border-white/10 hover:bg-white/5">Close Signal</button>
             </div>
         </div>
     </div>
 
     <div id="withdrawModal" class="fixed inset-0 z-[600] flex items-center justify-center px-6 modal-overlay hidden-modal">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeWithdraw()"></div>
-        <div class="glass-panel w-full max-w-[450px] p-8 rounded-[2.5rem] relative z-10 modal-content border-red-500/20">
+        <div class="glass-panel w-full max-w-[450px] p-8 rounded-[2.5rem] relative z-10 modal-content border-red-500/20 text-center">
             <div class="flex justify-between items-center mb-6 text-left">
-                <h3 class="text-2xl font-black text-white uppercase italic">Withdraw</h3>
+                <h3 class="text-2xl font-black text-white uppercase italic tracking-tighter">Withdraw</h3>
                 <button onclick="closeWithdraw()" class="text-slate-500 hover:text-white transition"><i data-lucide="x" class="w-5"></i></button>
             </div>
             <div class="space-y-6 text-left">
@@ -115,21 +111,21 @@
                 </div>
                 <div class="bg-black/40 border border-white/5 p-5 rounded-2xl">
                     <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Amount (USD)</label>
-                    <input id="withdrawAmount" type="number" class="bg-transparent text-xl font-black w-full outline-none text-white" placeholder="0.00">
+                    <input id="withdrawAmount" type="number" class="bg-transparent text-xl font-black w-full outline-none text-white" placeholder="0.4">
                     <p class="text-[9px] text-blue-400 mt-2 font-black uppercase tracking-widest" id="availableLabel">Checking balance...</p>
                 </div>
                 <div class="bg-black/40 border border-white/5 p-5 rounded-2xl">
                     <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Destination Address</label>
-                    <input id="withdrawAddress" type="text" class="bg-transparent text-xs font-mono w-full outline-none text-white" placeholder="Paste Crypto Address">
+                    <input id="withdrawAddress" type="text" class="bg-transparent text-[10px] font-mono w-full outline-none text-white" placeholder="Paste Wallet Address">
                 </div>
-                <button onclick="withdrawFunds()" id="withdrawBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black text-sm uppercase shadow-lg hover:bg-red-500 transition">Submit Request</button>
+                <button onclick="withdrawFunds()" id="withdrawBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase shadow-lg hover:bg-red-500 transition tracking-widest">Submit Request</button>
             </div>
         </div>
     </div>
 
-    <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6">
+    <aside id="sidebar" class="sidebar bg-[#05070a] flex flex-col p-6 text-left">
         <div class="flex items-center gap-3 mb-10 px-2">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-5"></i></div>
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20"><i data-lucide="shield-check" class="text-white w-6"></i></div>
             <span class="font-extrabold text-xl tracking-tighter text-white uppercase italic">primeP2P</span>
         </div>
         <nav class="space-y-2 flex-1">
@@ -141,26 +137,20 @@
         </nav>
         <div class="mt-auto pt-6 border-t border-white/5 flex items-center gap-4 mb-4">
             <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs" id="userAvatar">U</div>
-            <div class="flex flex-col text-left">
-                <span class="text-[11px] font-bold text-white truncate w-32" id="userNameDisplay">---</span>
-                <span class="text-[9px] text-green-500 font-bold uppercase tracking-widest">Secure Node</span>
-            </div>
+            <div class="flex flex-col text-left"><span class="text-[11px] font-bold text-white truncate w-32" id="userNameDisplay">---</span><span class="text-[9px] text-green-500 font-bold uppercase tracking-widest">Secure Node</span></div>
         </div>
     </aside>
 
-    <main class="flex-1 content-area p-4 md:p-10 lg:p-12">
+    <main class="flex-1 content-area p-4 md:p-10 lg:p-12 text-left">
         <header class="lg:hidden fixed top-0 left-0 w-full z-[400] bg-[#05070a]/90 backdrop-blur-xl border-b border-white/5 p-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-4"></i></div>
-                <span class="font-extrabold text-lg tracking-tighter text-white uppercase">primeP2P</span>
-            </div>
+            <div class="flex items-center gap-3"><div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center"><i data-lucide="shield-check" class="text-white w-4"></i></div><span class="font-extrabold text-lg tracking-tighter text-white uppercase italic">primeP2P</span></div>
             <button onclick="toggleSidebar()" class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="menu" class="w-5"></i></button>
         </header>
 
         <div class="max-w-5xl mx-auto">
             <div class="mb-10 text-left">
-                <h2 class="text-3xl font-black text-white tracking-tight uppercase italic tracking-tighter">Node Wallet</h2>
-                <p class="text-slate-500 text-xs mt-1">Decentralized asset settlement and liquidity management rails.</p>
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase italic">Node Wallet</h2>
+                <p class="text-slate-500 text-xs mt-1">Institutional liquidity management and settlement rails.</p>
             </div>
             
             <div class="grid lg:grid-cols-3 gap-6">
@@ -169,10 +159,9 @@
                         <div class="glass-panel p-8 rounded-[2rem] animate-pulse h-40 border border-white/5"></div>
                         <div class="glass-panel p-8 rounded-[2rem] animate-pulse h-40 border border-white/5"></div>
                     </div>
-
-                    <div class="glass-panel p-6 md:p-8 rounded-[2.5rem] border-white/5">
+                    <div class="glass-panel p-6 md:p-8 rounded-[2.5rem] border-white/5 text-left">
                         <div class="flex justify-between items-center mb-8">
-                            <div class="text-left"><h3 class="font-bold text-white text-sm uppercase tracking-widest">Ledger Activity</h3><p class="text-[8px] text-slate-600 uppercase font-black tracking-[0.2em] mt-1">Recent Flow</p></div>
+                            <div><h3 class="font-bold text-white text-sm uppercase tracking-widest">Ledger Activity</h3><p class="text-[8px] text-slate-600 uppercase font-black tracking-[0.2em] mt-1">Real-time Settlement Flow</p></div>
                             <i data-lucide="history" class="text-slate-600 w-4"></i>
                         </div>
                         <div class="space-y-3" id="txHistoryContainer">
@@ -182,14 +171,14 @@
                 </div>
 
                 <div class="lg:col-span-1">
-                    <div class="glass-panel p-8 rounded-[2.5rem] bg-blue-600/5 border-blue-500/10">
+                    <div class="glass-panel p-8 rounded-[2.5rem] bg-blue-600/5 border-blue-500/10 text-center">
                         <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-6">Quick Actions</h4>
                         <div class="space-y-4">
-                            <button onclick="openDeposit()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[11px] uppercase shadow-lg hover:bg-blue-400 transition">Add Funds</button>
-                            <button onclick="openWithdraw()" class="w-full py-4 glass-panel text-white rounded-2xl font-black text-[11px] uppercase border-white/10 text-center hover:bg-white/5 transition">Withdraw</button>
+                            <button onclick="openDeposit()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase shadow-lg hover:bg-blue-400 transition">Add Funds</button>
+                            <button onclick="openWithdraw()" class="w-full py-4 glass-panel text-white rounded-2xl font-black text-[10px] uppercase border-white/10 text-center hover:bg-white/5 transition">Withdraw</button>
                         </div>
-                        <div class="mt-8 pt-8 border-t border-white/5 text-[10px] text-green-500 font-bold uppercase flex items-center gap-2">
-                            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Node Fully Synchronized
+                        <div class="mt-8 pt-8 border-t border-white/5 text-[10px] text-green-500 font-bold uppercase flex items-center justify-center gap-2">
+                            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Ledger Synced
                         </div>
                     </div>
                 </div>
@@ -218,11 +207,11 @@
         function closeWithdraw() { document.getElementById('withdrawModal').classList.add('hidden-modal'); }
 
         function copyDepositAddr() {
-            const addr = document.getElementById('displayPayAddress').innerText;
-            navigator.clipboard.writeText(addr);
-            showToast("Address Copied", "success");
+            navigator.clipboard.writeText(document.getElementById('displayPayAddress').innerText);
+            showToast("Signal Copied", "success");
         }
 
+        /* FIX: GATEWAY DEPOSIT */
         async function processDeposit() {
             const amt = document.getElementById('cryptoAmount').value;
             const currency = document.getElementById('cryptoCurrency').value;
@@ -233,64 +222,62 @@
             document.getElementById('depositStep2').classList.remove('hidden');
 
             try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'init_crypto_deposit', amount: amt, currency: currency, email: email }) });
+                const res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'init_crypto_deposit', amount: amt, currency: currency, email: email }) 
+                });
                 const result = await res.json();
+                
+                // RESET PROTOCOL: Clear spinner if gateway fails
                 if (result.pay_address) {
                     document.getElementById('depositStep2').classList.add('hidden');
                     document.getElementById('depositStep3').classList.remove('hidden');
                     document.getElementById('displayPayAmount').innerText = `${result.pay_amount} ${result.pay_currency.toUpperCase()}`;
                     document.getElementById('displayPayAddress').innerText = result.pay_address;
                     observePayment(email);
-                } else { showToast("Gateway signal failure", "error"); resetDepositUI(); }
-            } catch (e) { showToast("Network interruption", "error"); resetDepositUI(); }
+                } else { 
+                    throw new Error("GATEWAY_REJECTED"); 
+                }
+            } catch (e) { 
+                showToast("GATEWAY SIGNAL FAILURE", "error"); 
+                resetDepositUI(); 
+            }
         }
 
+        /* FIX: LEDGER WITHDRAWAL */
         async function withdrawFunds() {
-    const btn = document.getElementById('withdrawBtn');
-    const amount = document.getElementById('withdrawAmount').value;
-    const address = document.getElementById('withdrawAddress').value;
-    const asset = document.getElementById('withdrawAsset').value;
-    const email = localStorage.getItem('user_email');
+            const btn = document.getElementById('withdrawBtn');
+            const amount = document.getElementById('withdrawAmount').value;
+            const address = document.getElementById('withdrawAddress').value;
+            const asset = document.getElementById('withdrawAsset').value;
+            const email = localStorage.getItem('user_email');
 
-    // 1. Initial Node Validation
-    if(!amount || !address) return showToast("Fill all required fields", "error");
-    if(parseFloat(amount) > currentBalance) return showToast("Insufficient node balance", "error");
+            if(!amount || !address) return showToast("Fill all fields", "error");
+            if(parseFloat(amount) > currentBalance) return showToast("Insufficient liquidity", "error");
 
-    btn.innerText = "Synchronizing Ledger..."; 
-    btn.disabled = true;
+            btn.innerText = "SYNCHRONIZING LEDGER..."; 
+            btn.disabled = true;
 
-    try {
-        // 2. Transmit Withdrawal & Auto-Deduction Signal
-        const res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify({ 
-                action: 'submit_withdrawal', 
-                email: email, 
-                amount: amount, 
-                address: address, 
-                asset: asset 
-            })
-        });
-        
-        const data = await res.json();
-        
-        if(data.success) {
-            // 3. Success Feedback: Confirming deduction happened
-            showToast("Balance updated. Request pending approval.", "success");
-            
-            // Reload to show the updated balance and 'PENDING_APPROVAL' in ledger
-            setTimeout(() => window.location.reload(), 2000);
-        } else {
-            showToast(data.message, "error");
-            btn.innerText = "Submit Request";
-            btn.disabled = false;
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'submit_withdrawal', email, amount, address, asset })
+                });
+                const data = await res.json();
+                
+                // RESET PROTOCOL: Clear spinner upon decision
+                if(data.success) {
+                    showToast("Signal Dispatched: Pending Verification", "success");
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (e) { 
+                showToast(e.message || "SIGNAL LOST", "error"); 
+                btn.innerText = "Submit Request";
+                btn.disabled = false;
+            }
         }
-    } catch (e) { 
-        showToast("Protocol Interference: Connection Lost", "error"); 
-        btn.innerText = "Submit Request";
-        btn.disabled = false;
-    }
-}
 
         function observePayment(userEmail) {
             if (observerInterval) clearInterval(observerInterval);
@@ -300,7 +287,7 @@
                     const txData = await txRes.json();
                     if (txData.success && txData.trades.some(t => t.userEmail === userEmail && (t.status === 'FINISHED' || t.status === 'COMPLETED'))) {
                         clearInterval(observerInterval);
-                        showToast("Ledger Synchronized!", "success");
+                        showToast("Ledger Synchronized", "success");
                         loadWalletData();
                         setTimeout(closeDeposit, 3000);
                     }
@@ -322,36 +309,33 @@
                 const txRes = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'get_all_trades' }) });
                 const txData = await txRes.json();
                 if (txData.success) { renderHistory(txData.trades.filter(t => t.userEmail === email).reverse().slice(0, 6)); }
-            } catch (e) { showToast("Ledger Sync Failure", "error"); }
+            } catch (e) { showToast("Sync Error", "error"); }
         }
 
         function renderAssets(balances) {
-            const config = [
-                {id:'USDT', color:'green-400', name:'Institutional USDT', icon:'coins'}, 
-                {id:'BTC', color:'orange-400', name:'Verified Bitcoin', icon:'bitcoin'}
-            ];
+            const config = [{id:'USDT', icon:'coins', name:'Institutional USDT'}, {id:'BTC', icon:'bitcoin', name:'Verified Bitcoin'}];
             document.getElementById('walletAssetGrid').innerHTML = config.map(a => `
-                <div class="glass-panel p-6 md:p-8 rounded-[2rem] relative overflow-hidden text-left border-white/5 transition-all hover:border-blue-500/20">
+                <div class="glass-panel p-8 rounded-[2rem] relative overflow-hidden border-white/5 text-left">
                     <div class="absolute -top-4 -right-4 text-white/5"><i data-lucide="${a.icon}" class="w-24 h-24"></i></div>
-                    <p class="text-[9px] font-black text-slate-500 uppercase mb-4 relative z-10 tracking-[0.1em]">${a.name}</p>
-                    <h3 class="text-2xl md:text-3xl font-black text-white relative z-10">${parseFloat(balances[a.id] || 0).toLocaleString()} <span class="text-xs text-slate-500 font-bold">${a.id}</span></h3>
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-4 relative z-10 tracking-widest">${a.name}</p>
+                    <h3 class="text-3xl font-black text-white relative z-10 tracking-tighter">${parseFloat(balances[a.id] || 0).toLocaleString()} <span class="text-xs text-slate-500">${a.id}</span></h3>
                 </div>`).join('');
             lucide.createIcons();
         }
 
         function renderHistory(txs) {
             const container = document.getElementById('txHistoryContainer');
-            if (txs.length === 0) { container.innerHTML = `<div class="p-6 text-center text-slate-600 text-[10px] font-bold uppercase italic tracking-widest">No recent node activity</div>`; return; }
+            if (txs.length === 0) { container.innerHTML = `<div class="p-6 text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest">No node flow</div>`; return; }
             container.innerHTML = txs.map(t => {
                 const isComplete = t.status === 'COMPLETED' || t.status === 'FINISHED' || t.status === 'STAKED';
                 const statusColor = isComplete ? 'text-green-500' : (t.status.includes('PENDING') ? 'text-orange-500' : 'text-red-500');
                 return `
-                <div class="p-4 bg-black/40 rounded-2xl border border-white/5 flex items-center justify-between transition-all hover:bg-white/5">
+                <div class="p-4 bg-black/40 rounded-2xl border border-white/5 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center"><i data-lucide="${isComplete ? 'check-circle' : 'clock'}" class="w-4 ${statusColor}"></i></div>
-                        <div class="text-left"><p class="text-[11px] font-bold text-white truncate w-24 sm:w-auto uppercase tracking-tighter">${t.merchant}</p><p class="text-[8px] text-slate-600 font-black uppercase tracking-widest">${t.tradeId}</p></div>
+                        <div class="text-left"><p class="text-[11px] font-bold text-white uppercase tracking-tighter">${t.merchant}</p><p class="text-[8px] text-slate-600 font-black uppercase">${t.tradeId}</p></div>
                     </div>
-                    <div class="text-right"><p class="text-[11px] font-black text-white">${t.amount} ${t.asset}</p><span class="text-[8px] font-black uppercase tracking-widest ${statusColor}">${t.status}</span></div>
+                    <div class="text-right"><p class="text-[11px] font-black text-white">${t.amount} ${t.asset}</p><span class="text-[8px] font-black uppercase ${statusColor}">${t.status}</span></div>
                 </div>`;
             }).join('');
             lucide.createIcons();
@@ -363,7 +347,7 @@
             const c = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast glass-panel p-5 rounded-2xl flex items-center gap-4 border ${t === 'success' ? 'border-green-500/50' : 'border-red-500/50'} shadow-2xl`;
-            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-4"></i><span class="text-xs font-bold text-white uppercase">${m}</span>`;
+            toast.innerHTML = `<i data-lucide="${t==='success'?'check-circle':'alert-circle'}" class="${t==='success'?'text-green-500':'text-red-500'} w-4"></i><span class="text-xs font-bold text-white uppercase tracking-widest">${m}</span>`;
             c.appendChild(toast); lucide.createIcons(); setTimeout(() => toast.classList.add('show'), 100);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
