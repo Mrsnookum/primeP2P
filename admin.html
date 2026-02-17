@@ -108,30 +108,6 @@
             </div>
         </header>
 
-        <div class="grid lg:grid-cols-3 gap-6 mb-12">
-            <div class="glass-panel p-8 rounded-[2.5rem] border-blue-500/20 relative overflow-hidden group text-left">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway Balance</p>
-                        <h3 class="text-3xl font-black text-white" id="gatewayBalance">~ $0.00</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400"><i data-lucide="wallet"></i></div>
-                </div>
-                <div class="space-y-4">
-                    <div class="flex justify-between text-[10px] font-bold"><span class="text-slate-500">Auto-Payout</span><span class="text-green-500 uppercase">Active</span></div>
-                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full w-[10.17%]"></div></div>
-                    <p class="text-[9px] text-slate-500 font-medium italic">Settling directly to TRC-20 Node</p>
-                </div>
-            </div>
-            <div class="glass-panel p-8 rounded-[2.5rem] border-white/5 col-span-2 text-left">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-[10px] font-black uppercase text-white tracking-widest">Live Gateway Settlement Flow</h3>
-                    <span class="text-[9px] font-bold text-blue-400 uppercase animate-pulse">REST Sync Active</span>
-                </div>
-                <div id="payoutHistory" class="space-y-3 max-h-[160px] overflow-y-auto pr-2 mobile-nav text-xs text-slate-500 italic">Polling gateway signals...</div>
-            </div>
-        </div>
-
         <div class="mobile-nav flex gap-4 border-b border-white/5 mb-8 overflow-x-auto whitespace-nowrap pb-1">
             <button onclick="switchTab('trades')" id="tabBtn-trades" class="tab-btn active pb-4 text-[11px] font-black uppercase tracking-widest px-2">Queue</button>
             <button onclick="switchTab('withdrawals')" id="tabBtn-withdrawals" class="tab-btn pb-4 text-[11px] font-black uppercase tracking-widest px-2 text-slate-500">Withdrawals</button>
@@ -179,34 +155,12 @@
                     renderUsers(data.users); 
                     renderMarket(data.market);
                     renderSupport(data.support); 
-                    if (data.gateway) renderGatewayData(data.gateway);
                     if (logData.success) {
                         renderKYCQueue(data.users, logData.logs);
                         renderLogs(logData.logs);
                     }
                 }
             } catch (e) { showToast("Sync Error", "error"); }
-        }
-
-        function renderGatewayData(gateway) {
-            const balDisplay = document.getElementById('gatewayBalance');
-            if (gateway.balance && gateway.balance.usdttrc20) {
-                balDisplay.innerText = `$${parseFloat(gateway.balance.usdttrc20.amount).toFixed(2)}`;
-            }
-            const historyContainer = document.getElementById('payoutHistory');
-            if (!gateway.history || gateway.history.length === 0) {
-                historyContainer.innerHTML = `<p class="text-xs text-slate-500 italic">No recent flow.</p>`;
-                return;
-            }
-            historyContainer.innerHTML = gateway.history.map(p => `
-                <div class="flex justify-between items-center p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center text-[10px] font-black text-blue-400">${p.pay_currency.toUpperCase()}</div>
-                        <div><p class="text-[10px] font-bold text-white uppercase">${p.order_id || 'Node Credit'}</p><p class="text-[8px] text-slate-600 font-bold">${new Date(p.created_at).toLocaleString()}</p></div>
-                    </div>
-                    <div class="text-right"><p class="text-[10px] font-black text-white">$${p.price_amount}</p><p class="text-[8px] font-black uppercase ${p.payment_status === 'finished' ? 'text-green-500' : 'text-orange-500'}">${p.payment_status}</p></div>
-                </div>`).join('');
-            lucide.createIcons();
         }
 
         function renderTrades(trades, logs) {
@@ -254,7 +208,6 @@
             }).join('');
         }
 
-        // FIXED: IDENTITY NODE SIGNAL
         async function processKYC(email, decision) {
             openConfirmModal(`${decision} Identity Node`, `Confirm validation as Level ${decision === 'APPROVE' ? '2' : '1'}?`, async () => {
                 try {
@@ -321,7 +274,6 @@
             container.innerHTML = logs.map(l => `<div class="glass-panel p-3 rounded-lg border-white/5 flex flex-col gap-0.5 text-left"><div class="flex justify-between items-center"><span class="text-[8px] font-black uppercase text-blue-400">${l[2]}</span><span class="text-[7px] text-slate-600">${new Date(l[0]).toLocaleTimeString()}</span></div><p class="text-[9px] text-white leading-tight uppercase">${l[3]}</p></div>`).join('');
         }
 
-        // UPDATED: MARKET SAVE WITH UNIQUE ADDRESS & RATING
         async function saveMarketMaker() {
             const p = { 
                 action: 'admin_manage_market', 
